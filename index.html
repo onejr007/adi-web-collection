@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADI Web Collection — Kumpulan Website ADI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            font-size: 2.2em;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 40px;
+            font-size: 0.95em;
+        }
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .project-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 24px;
+            text-decoration: none;
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        .project-card:hover {
+            transform: translateY(-4px);
+            border-color: #3a7bd5;
+            box-shadow: 0 8px 30px rgba(58, 123, 213, 0.2);
+        }
+        .project-card h3 {
+            font-size: 1.15em;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        .project-card p {
+            font-size: 0.88em;
+            color: #aaa;
+            margin-bottom: 12px;
+        }
+        .project-card .date {
+            font-size: 0.78em;
+            color: #666;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.82em;
+            color: #555;
+        }
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ ADI Web Collection</h1>
+        <p class="subtitle">Kumpulan website statis yang dibuat oleh ADI (Agent Distributed Intelligence)</p>
+        <div class="project-grid">
+            
+        <a href="test-portfolio/" class="project-card">
+            <h3>test-portfolio</h3>
+            <p>Test website</p>
+            <span class="date">2026-07-29 11:20 UTC</span>
+        </a>
+        </div>
+        <div class="footer">
+            Dibuat oleh <strong>ADI System</strong> — Agent Distributed Intelligence<br>
+            Lead Developer: BAGAS ADI PRATAMA S,Kom.
+        </div>
+    </div>
+</body>
+</html>
