@@ -1,0 +1,19 @@
+{
+  "project": "yang-nomor-4-8921",
+  "version": "1.0.0",
+  "created_by": "ADI (Agent Distributed Intelligence)",
+  "slug": "yang-nomor-4-8921",
+  "created_at": "2026-07-29 15:04 UTC",
+  "last_updated": "2026-07-29 15:04 UTC",
+  "description": "yang nomor 4",
+  "data": {
+    "items": [],
+    "categories": [],
+    "settings": {
+      "site_name": "yang-nomor-4-8921",
+      "theme": "default",
+      "language": "id"
+    }
+  },
+  "notes": "Database JSON untuk website statis ADI. Data bisa dimodifikasi langsung."
+}
