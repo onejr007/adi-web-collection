@@ -1,0 +1,19 @@
+{
+  "project": "kamu-tau-saya-sebelumnya-buat-websi-8608",
+  "version": "1.0.0",
+  "created_by": "ADI (Agent Distributed Intelligence)",
+  "slug": "kamu-tau-saya-sebelumnya-buat-websi-8608",
+  "created_at": "2026-07-29 13:44 UTC",
+  "last_updated": "2026-07-29 13:44 UTC",
+  "description": "kamu tau saya sebelumnya buat website dengan bantuan anda kan ?",
+  "data": {
+    "items": [],
+    "categories": [],
+    "settings": {
+      "site_name": "kamu-tau-saya-sebelumnya-buat-websi-8608",
+      "theme": "default",
+      "language": "id"
+    }
+  },
+  "notes": "Database JSON untuk website statis ADI. Data bisa dimodifikasi langsung."
+}
