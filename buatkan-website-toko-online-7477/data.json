@@ -1,0 +1,19 @@
+{
+  "project": "buatkan-website-toko-online-7477",
+  "version": "1.0.0",
+  "created_by": "ADI (Agent Distributed Intelligence)",
+  "slug": "buatkan-website-toko-online-7477",
+  "created_at": "2026-07-29 13:37 UTC",
+  "last_updated": "2026-07-29 13:37 UTC",
+  "description": "buatkan website toko online",
+  "data": {
+    "items": [],
+    "categories": [],
+    "settings": {
+      "site_name": "buatkan-website-toko-online-7477",
+      "theme": "default",
+      "language": "id"
+    }
+  },
+  "notes": "Database JSON untuk website statis ADI. Data bisa dimodifikasi langsung."
+}
