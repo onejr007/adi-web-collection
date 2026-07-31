@@ -1,0 +1,19 @@
+{
+  "project": "coba-buatkan-saya-website-portal-b-2413",
+  "version": "1.0.0",
+  "created_by": "ADI (Agent Distributed Intelligence)",
+  "slug": "coba-buatkan-saya-website-portal-b-2413",
+  "created_at": "2026-07-31 02:04 UTC",
+  "last_updated": "2026-07-31 02:04 UTC",
+  "description": "coba buatkan saya website  portal berita",
+  "data": {
+    "items": [],
+    "categories": [],
+    "settings": {
+      "site_name": "coba-buatkan-saya-website-portal-b-2413",
+      "theme": "default",
+      "language": "id"
+    }
+  },
+  "notes": "Database JSON untuk website statis ADI. Data bisa dimodifikasi langsung."
+}
