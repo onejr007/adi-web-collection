@@ -1,0 +1,19 @@
+{
+  "project": "buatkan-saya-website-topup-freefire-6261",
+  "version": "1.0.0",
+  "created_by": "ADI (Agent Distributed Intelligence)",
+  "slug": "buatkan-saya-website-topup-freefire-6261",
+  "created_at": "2026-08-02 06:51 UTC",
+  "last_updated": "2026-08-02 06:51 UTC",
+  "description": "Buatkan saya website topup freefire keren dan lengkap",
+  "data": {
+    "items": [],
+    "categories": [],
+    "settings": {
+      "site_name": "buatkan-saya-website-topup-freefire-6261",
+      "theme": "default",
+      "language": "id"
+    }
+  },
+  "notes": "Database JSON untuk website statis ADI. Data bisa dimodifikasi langsung."
+}
