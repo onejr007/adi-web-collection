@@ -1,0 +1,49 @@
+@payload {
+    sender "adi"
+    target_agent "web"
+    intent "build"
+}
+
+routes {
+    route "/" layout "home" transition "fade"
+}
+
+@i18n {
+    locale "id" {
+        title "TopUp FF"
+        tagline "TopUp Free Fire Mudah & Cepat"
+    }
+}
+
+ui_layout "home" {
+    navbar "TopUp FF"
+    container {
+        flex row {
+            text "TopUp FF"
+            text "TopUp Free Fire Mudah & Cepat"
+        }
+        button "Selengkapnya" onClick cta_go
+    }
+    card "Fitur" {
+        text "Harga Murah — andalan utama kami"
+        text "Proses Cepat — pilihan terbaik untuk Anda"
+        text "Diskon Menarik — jaminan kualitas"
+    }
+    card "Kontak" {
+        input "email" placeholder "Email Anda" bind: @state.email validate "required|email"
+        button "Kirim" onClick buy
+    }
+    footer "© 2026 ADI — dibuat dengan bahasa ADILang"
+}
+
+component App {
+    on_mount: @log_change("app_mounted")
+}
+
+func cta_go() {
+    @log_change("cta_go")
+}
+
+func buy() {
+    @log_change("buy")
+}
