@@ -1,0 +1,21 @@
+{
+  "project": "adi-web-2e0ef16b",
+  "version": "1.0.0",
+  "created_by": "ADI (Agent Distributed Intelligence)",
+  "engine": "ADILang + ADILang Web SDK (ADI framework)",
+  "adilang": true,
+  "slug": "adi-web-2e0ef16b",
+  "created_at": "2026-08-02 20:00 UTC",
+  "last_updated": "2026-08-02 20:00 UTC",
+  "description": "buatkan saya website topup freefire keren dan lengkap",
+  "data": {
+    "items": [],
+    "categories": [],
+    "settings": {
+      "site_name": "adi-web-2e0ef16b",
+      "theme": "default",
+      "language": "id"
+    }
+  },
+  "notes": "Database JSON untuk website statis ADI. Data bisa dimodifikasi langsung."
+}
