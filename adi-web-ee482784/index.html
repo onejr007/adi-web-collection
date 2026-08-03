@@ -1,0 +1,1709 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="ADILang + ADILang Web SDK (ADI framework) v1.14.0">
+  <title>home</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; font-family: system-ui, sans-serif; background: #0b1220; color: #e2e8f0; }
+    #app { min-height: 100vh; }
+  </style>
+</head>
+<body>
+  <!-- built with ADILang + ADILang Web SDK (ADI framework) -->
+  <div id="app"></div>
+  <script type="text/adi">
+@payload { 
+    sender "adi" 
+    target_agent "web" 
+    intent "build" 
+}
+
+@i18n { 
+    locale "id" { 
+        title "TokoMudah Online"
+        tagline "Belanja praktis, cepat, dan aman di satu tempat"
+        sk1 "Produk Terbaru"
+        sk2 "Pengiriman Cepat"
+        sk3 "Pembayaran Aman"
+        topic_name "Ecommerce"
+        topic_desc "Belanja online tanpa ribet"
+        kirim "Kirim Pesan"
+        cta "Belanja Sekarang"
+        nama "Nama Anda"
+        email "Email Anda"
+        pesan "Pesan Anda"
+    } 
+    locale "en" { 
+        title "TokoMudah Online"
+        tagline "Practical, fast, and secure shopping in one place"
+    } 
+}
+
+routes { 
+    route "/" layout "home" transition "fade"
+}
+
+ui_layout "home" { 
+    navbar "TokoMudah Online"
+    container { 
+        flex column { 
+            text "TokoMudah Online"
+            text "Belanja praktis, cepat, dan aman di satu tempat"
+            button "Belanja Sekarang" onClick belanja
+        }
+    }
+    card "Keunggulan Kami" { 
+        text "Produk Terbaru — kami selalu update produk terbaru untuk Anda"
+        text "Pengiriman Cepat — pengiriman yang cepat dan efisien"
+        text "Pembayaran Aman — pembayaran yang aman dan terjamin"
+    }
+    card "Kontak" { 
+        input "nama" placeholder "Nama Anda" bind: @state.nama validate "required"
+        input "email" placeholder "Email Anda" bind: @state.email validate "required|email"
+        input "pesan" placeholder "Pesan Anda" bind: @state.pesan validate "required"
+        button "Kirim Pesan" onClick kirim_pesan
+    }
+    footer " 2026 TokoMudah Online — dibuat dengan bahasa ADILang + framework ADI"
+}
+
+component App { 
+    on_mount: @log_change("app_mounted")
+}
+
+func belanja() { 
+    @log_change("belanja")
+}
+
+func kirim_pesan() { 
+    @log_change("kirim_pesan")
+}
+  </script>
+  <script>
+// ADILang Web SDK (adilang_web) v1.14.0
+// Dirancang & ditulis oleh AI (ADI Agent Ecosystem).
+//
+// Wrapper ringan untuk menjalankan ADILang di browser:
+//   <adi-runner src="app.adi" autostart></adi-runner>
+//   const app = new ADILangEngine('#container');
+//   await app.loadCode(adiCode);
+//
+// Strategi:
+//   - Jika WASM (adilang_wasm.js / wasm-bindgen) tersedia → pakai parser &
+//     binary protocol asli via opts.wasm / global.ADILangWasm.
+//   - Tanpa WASM → parser mini bawaan untuk ui_layout & @payload + render DOM
+//     murni (fallback), spatial_3d di-delegate via event 'adi:spatial3d'.
+//   - State reactive dot-path (mirror StateStore Rust) → auto re-render saat
+//     path payload/ui berubah.
+
+(function (global, factory) {
+  if (typeof module === 'object' && module.exports) {
+    module.exports = factory(global);
+  } else if (typeof define === 'function' && define.amd) {
+    define([], function () { return factory(global); });
+  } else {
+    global.ADILang = factory(global);
+  }
+})(typeof window !== 'undefined' ? window : globalThis, function (global) {
+  'use strict';
+
+  const VERSION = '1.14.0';
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ReactiveState — mirror dot-path dari state.rs (Redux/Signals-like)
+  // ─────────────────────────────────────────────────────────────────────────
+  class ReactiveState {
+    constructor() {
+      this.root = {};
+      this.revision = 0;
+      this.subs = []; // { id, prefix: string[], cb }
+      this.nextId = 1;
+    }
+
+    splitPath(path) {
+      return String(path).split('.').map((s) => s.trim()).filter(Boolean);
+    }
+
+    get(path) {
+      const segs = this.splitPath(path);
+      let cur = this.root;
+      for (const s of segs) {
+        if (cur == null || typeof cur !== 'object') return undefined;
+        cur = cur[s];
+      }
+      return cur;
+    }
+
+    set(path, value) {
+      const segs = this.splitPath(path);
+      if (!segs.length) return false;
+      let cur = this.root;
+      for (let i = 0; i < segs.length - 1; i++) {
+        if (cur[segs[i]] == null || typeof cur[segs[i]] !== 'object') {
+          cur[segs[i]] = {};
+        }
+        cur = cur[segs[i]];
+      }
+      const last = segs[segs.length - 1];
+      if (deepEqual(cur[last], value)) return false;
+      cur[last] = value;
+      this.bumpAndNotify(segs);
+      return true;
+    }
+
+    delete(path) {
+      const segs = this.splitPath(path);
+      if (!segs.length) return false;
+      const last = segs.pop();
+      const parent = this.get(segs.length ? segs.join('.') : '');
+      if (parent != null && typeof parent === 'object' && last in parent) {
+        delete parent[last];
+        this.bumpAndNotify([...segs, last]);
+        return true;
+      }
+      return false;
+    }
+
+    subscribe(prefix, cb) {
+      const id = this.nextId++;
+      this.subs.push({ id, prefix: this.splitPath(prefix), cb });
+      return id;
+    }
+
+    unsubscribe(id) {
+      const before = this.subs.length;
+      this.subs = this.subs.filter((s) => s.id !== id);
+      return this.subs.length !== before;
+    }
+
+    bumpAndNotify(changed) {
+      this.revision++;
+      for (const sub of this.subs) {
+        if (!sub.prefix.length) { sub.cb(changed.join('.'), this.get(changed.join('.'))); continue; }
+        const ok =
+          changed.length >= sub.prefix.length &&
+          sub.prefix.every((p, i) => p === changed[i]);
+        if (ok) sub.cb(changed.join('.'), this.get(changed.join('.')));
+      }
+    }
+
+    snapshot() {
+      return JSON.parse(JSON.stringify(this.root));
+    }
+
+    load(json) {
+      this.root = json == null ? {} : JSON.parse(JSON.stringify(json));
+      this.bumpAndNotify([]);
+    }
+  }
+
+  function deepEqual(a, b) {
+    if (a === b) return true;
+    if (typeof a !== typeof b || a == null || b == null) return false;
+    if (Array.isArray(a) && Array.isArray(b)) {
+      return a.length === b.length && a.every((v, i) => deepEqual(v, b[i]));
+    }
+    if (typeof a === 'object' && typeof b === 'object') {
+      const ka = Object.keys(a);
+      const kb = Object.keys(b);
+      return ka.length === kb.length && ka.every((k) => deepEqual(a[k], b[k]));
+    }
+    return false;
+  }
+
+  function isRenderRelevant(path) {
+    return path === 'payload' || path === 'ui' ||
+      path.startsWith('payload.') || path.startsWith('ui.');
+  }
+
+  function resolveTemplate(str, state) {
+    return String(str).replace(/\{\{\s*([\w.]+)\s*\}\}/g, (m, p) => {
+      const v = state.get ? state.get(p) : undefined;
+      return v == null ? '' : String(v);
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Mini Parser — subset ADILang untuk fallback tanpa WASM.
+  // Format penuh (semua blok, ekspresi, type-check) → pakai WASM.
+  // ─────────────────────────────────────────────────────────────────────────
+  function tokenize(code) {
+    const toks = [];
+    let i = 0;
+    while (i < code.length) {
+      const ch = code[i];
+      if (ch === '"') {
+        let j = i + 1;
+        let s = '';
+        while (j < code.length && code[j] !== '"') {
+          if (code[j] === '\\') j++;
+          s += code[j];
+          j++;
+        }
+        toks.push({ t: 'str', v: s });
+        i = j + 1;
+      } else if (ch === '@') {
+        let j = i + 1;
+        while (j < code.length && /[\w]/.test(code[j])) j++;
+        toks.push({ t: 'word', v: code.slice(i, j) });
+        i = j;
+      } else if ('{}():[],'.includes(ch)) {
+        toks.push({ t: 'punct', v: ch });
+        i++;
+      } else if (/\s/.test(ch)) {
+        i++;
+      } else {
+        let j = i;
+        while (j < code.length && !/\s/.test(code[j]) && !'{}():[],'.includes(code[j])) j++;
+        toks.push({ t: 'word', v: code.slice(i, j) });
+        i = j;
+      }
+    }
+    return toks;
+  }
+
+  function matchingClose(toks, open) {
+    let depth = 0;
+    for (let i = open; i < toks.length; i++) {
+      if (toks[i].t === 'punct' && toks[i].v === '{') depth++;
+      else if (toks[i].t === 'punct' && toks[i].v === '}') {
+        depth--;
+        if (depth === 0) return i;
+      }
+    }
+    return -1;
+  }
+
+  function parsePayloadBlock(toks) {
+    const out = { sender: '', target_agent: '', intent: '', state_data: null };
+    let i = 0;
+    while (i < toks.length) {
+      if (toks[i].t === 'word') {
+        const key = toks[i].v;
+        const next = toks[i + 1];
+        if (next && next.t === 'str') {
+          out[key] = next.v;
+          i += 2;
+        } else if (next && next.t === 'word') {
+          out[key] = next.v;
+          i += 2;
+        } else if (next && next.t === 'punct' && next.v === '{') {
+          const close = matchingClose(toks, i + 1);
+          out[key] = parseStateData(toks.slice(i + 2, close));
+          i = close + 1;
+        } else i++;
+      } else i++;
+    }
+    return out;
+  }
+
+  function parseStateData(toks) {
+    const obj = {};
+    let i = 0;
+    while (i < toks.length) {
+      if (toks[i].t === 'word') {
+        const key = toks[i].v;
+        const next = toks[i + 1];
+        if (next && next.t === 'str') { obj[key] = next.v; i += 2; }
+        else if (next && next.t === 'word') { obj[key] = next.v; i += 2; }
+        else if (next && next.t === 'punct' && next.v === '{') {
+          const close = matchingClose(toks, i + 1);
+          obj[key] = parseStateData(toks.slice(i + 2, close));
+          i = close + 1;
+        } else i++;
+      } else i++;
+    }
+    return obj;
+  }
+
+  const UI_ATTR_KEYS = ['ariaLabel', 'src'];
+
+  function parseUIAttrs(toks, i, comp) {
+    const COMPONENT_WORDS = ['container', 'text', 'button', 'input', 'image', 'flex', 'card', 'modal', 'navbar', 'footer'];
+    while (i < toks.length && toks[i].t === 'word' && !COMPONENT_WORDS.includes(toks[i].v)) {
+      const attr = toks[i].v;
+      let j = i + 1;
+      if (toks[j] && toks[j].t === 'punct' && toks[j].v === ':') j++;
+      const val = toks[j];
+      if (attr === 'bind' && val && val.t === 'word' && val.v.startsWith('@')) {
+        // bind @state.path(.seg)*  → 'state.path.seg'
+        let path = val.v.slice(1);
+        let k = j + 1;
+        while (toks[k] && toks[k].t === 'word' && toks[k].v.startsWith('.')) {
+          path += toks[k].v;
+          k++;
+        }
+        comp.bind = path;
+        i = k;
+      } else if (val && val.t === 'str') { comp[attr] = val.v; i = j + 1; }
+      else if (val && val.t === 'word') { comp[attr] = val.v; i = j + 1; }
+      else i++;
+    }
+    return i;
+  }
+
+  function parseUI(toks) {
+    let i = 0;
+    const node = { kind: 'container', flex: null, children: [] };
+    while (i < toks.length) {
+      const tk = toks[i];
+      if (tk.t === 'word') {
+        if (tk.v === 'container') {
+          i++;
+          if (toks[i] && toks[i].t === 'punct' && toks[i].v === '{') {
+            const close = matchingClose(toks, i);
+            node.children.push(parseUI(toks.slice(i + 1, close)));
+            i = close + 1;
+          }
+        } else if (tk.v === 'flex') {
+          const dir = toks[i + 1];
+          node.flex = dir && dir.t === 'word' && (dir.v === 'row' || dir.v === 'column') ? dir.v : 'column';
+          i += 2;
+        } else if (tk.v === 'card' || tk.v === 'modal') {
+          // card/modal [ "title" ] { children }
+          const comp = { kind: tk.v, title: null, children: [] };
+          i++;
+          if (toks[i] && toks[i].t === 'str') { comp.title = toks[i].v; i++; }
+          if (toks[i] && toks[i].t === 'punct' && toks[i].v === '{') {
+            const close = matchingClose(toks, i);
+            comp.children = parseUI(toks.slice(i + 1, close)).children || [];
+            i = close + 1;
+          }
+          node.children.push(comp);
+        } else if (tk.v === 'navbar') {
+          const comp = { kind: 'navbar', title: null };
+          i++;
+          if (toks[i] && toks[i].t === 'str') { comp.title = toks[i].v; i++; }
+          node.children.push(comp);
+        } else if (tk.v === 'footer') {
+          const comp = { kind: 'footer', content: '' };
+          i++;
+          if (toks[i] && toks[i].t === 'str') { comp.content = toks[i].v; i++; }
+          node.children.push(comp);
+        } else if (tk.v === 'text' || tk.v === 'button' || tk.v === 'input' || tk.v === 'image') {
+          const comp = { kind: tk.v };
+          i++;
+          if (toks[i] && toks[i].t === 'str') {
+            if (tk.v === 'text') comp.content = toks[i].v;
+            else if (tk.v === 'button') comp.label = toks[i].v;
+            else if (tk.v === 'image') comp.alt = toks[i].v;
+            else comp.name = toks[i].v;
+            i++;
+          }
+          // atribut tambahan: onClick word, placeholder "str", bind @state.x, validate "rules"
+          i = parseUIAttrs(toks, i, comp);
+          node.children.push(comp);
+        } else {
+          i++;
+        }
+      } else i++;
+    }
+    return node;
+  }
+
+  // ── v1.12.0 — @use_js / routes / @i18n (mini parser) ─────────────────────
+  function parseUseJsBlock(toks) {
+    let url = '';
+    for (let i = 0; i < toks.length; i++) {
+      if (toks[i].t === 'word' && toks[i].v === 'url' && toks[i + 1] && toks[i + 1].t === 'str') {
+        url = toks[i + 1].v;
+        break;
+      }
+    }
+    return { kind: 'use_js', url };
+  }
+
+  function parseRoutesBlock(toks) {
+    const routes = [];
+    let i = 0;
+    while (i < toks.length) {
+      if (toks[i].t === 'word' && toks[i].v === 'route') {
+        i++;
+        let path = '';
+        let layout = '';
+        let transition = null;
+        if (toks[i] && toks[i].t === 'str') { path = toks[i].v; i++; }
+        while (i < toks.length && !(toks[i].t === 'word' && toks[i].v === 'route')) {
+          if (toks[i].t === 'word' && (toks[i].v === 'layout' || toks[i].v === 'transition')) {
+            const key = toks[i].v;
+            const val = toks[i + 1];
+            if (val && val.t === 'str') {
+              if (key === 'layout') layout = val.v;
+              else transition = val.v;
+            }
+            i += 2;
+          } else i++;
+        }
+        if (path && layout) routes.push({ path, layout, transition });
+      } else i++;
+    }
+    return { kind: 'routes', routes };
+  }
+
+  function parseI18nBlock(toks) {
+    const locales = {};
+    let i = 0;
+    while (i < toks.length) {
+      if (toks[i].t === 'word' && toks[i].v === 'locale') {
+        i++;
+        let name = '';
+        if (toks[i] && toks[i].t === 'str') { name = toks[i].v; i++; }
+        const open = toks.findIndex((t, k) => k >= i && t.t === 'punct' && t.v === '{');
+        if (open >= 0 && name) {
+          const close = matchingClose(toks, open);
+          const dict = {};
+          for (let k = open + 1; k < close; k++) {
+            if (toks[k].t === 'word' && toks[k + 1] && toks[k + 1].t === 'str') {
+              dict[toks[k].v] = toks[k + 1].v;
+            }
+          }
+          locales[name] = dict;
+          i = close + 1;
+        } else i++;
+      } else i++;
+    }
+    return { kind: 'i18n', locales };
+  }
+
+  // ── v1.13.0: component (lifecycle hooks) & directive statement @name(args) ─
+
+  const HOOK_KINDS = ['on_mount', 'on_update', 'on_unmount'];
+
+  function parseDirectiveArgs(toks, i) {
+    // i menunjuk '(' → kembalikan { args, next } dengan next = index ')'.
+    const args = [];
+    let k = i + 1;
+    while (k < toks.length) {
+      const tk = toks[k];
+      if (tk.t === 'punct' && tk.v === ')') return { args, next: k };
+      if (tk.t === 'punct' && tk.v === ',') { k++; continue; }
+      if (tk.t === 'str' || tk.t === 'word') { args.push(tk.v); }
+      k++;
+    }
+    return { args, next: k };
+  }
+
+  function parseComponentBlock(toks) {
+    // toks = isi `{ ... }` — baris hook `on_mount: @fetch_data() @log_state(...)`.
+    const hooks = { on_mount: [], on_update: [], on_unmount: [] };
+    let i = 0;
+    while (i < toks.length) {
+      const tk = toks[i];
+      const isHook = tk.t === 'word' && HOOK_KINDS.indexOf(tk.v) >= 0 &&
+        toks[i + 1] && toks[i + 1].t === 'punct' && toks[i + 1].v === ':';
+      if (isHook) {
+        const kind = tk.v;
+        let k = i + 2;
+        while (k < toks.length) {
+          const d = toks[k];
+          // Hook berikutnya (word diikuti ':') mengakhiri baris directive.
+          if (d.t === 'word' && HOOK_KINDS.indexOf(d.v) >= 0 &&
+              toks[k + 1] && toks[k + 1].t === 'punct' && toks[k + 1].v === ':') break;
+          if (d.t === 'word' && d.v.charAt(0) === '@') {
+            const name = d.v.slice(1);
+            if (toks[k + 1] && toks[k + 1].t === 'punct' && toks[k + 1].v === '(') {
+              const r = parseDirectiveArgs(toks, k + 1);
+              hooks[kind].push({ name, args: r.args });
+              k = r.next + 1;
+            } else {
+              hooks[kind].push({ name, args: [] });
+              k++;
+            }
+          } else {
+            k++;
+          }
+        }
+        i = k;
+      } else {
+        i++;
+      }
+    }
+    return { kind: 'component', hooks };
+  }
+
+  // Ambil directive statement `@navigate("...")` / `@set_locale("...")` dari
+  // teks mentah blok spatial (regex ringan — cukup untuk live-preview).
+  function extractSpatialDirectives(raw) {
+    const out = [];
+    const re = /@(navigate|set_locale)\s*\(\s*"([^"]*)"\s*\)/g;
+    let m;
+    while ((m = re.exec(raw))) {
+      out.push({ type: m[1], arg: m[2] });
+    }
+    return out;
+  }
+
+  function parseADILang(code) {
+    const toks = tokenize(code);
+    const items = [];
+    let i = 0;
+    while (i < toks.length) {
+      const tk = toks[i];
+      if (tk.t === 'word' && (tk.v === '@payload' || tk.v === '@use_js' || tk.v === '@i18n')) {
+        const open = toks.findIndex((t, j) => j > i && t.t === 'punct' && t.v === '{');
+        if (open >= 0) {
+          const close = matchingClose(toks, open);
+          const block = toks.slice(open + 1, close);
+          if (tk.v === '@payload') {
+            items.push({ kind: 'payload', ...parsePayloadBlock(block) });
+          } else if (tk.v === '@use_js') {
+            items.push(parseUseJsBlock(block));
+          } else {
+            items.push(parseI18nBlock(block));
+          }
+          i = close + 1;
+          continue;
+        }
+      }
+      if (tk.t === 'word' && tk.v === 'routes') {
+        const open = toks.findIndex((t, j) => j > i && t.t === 'punct' && t.v === '{');
+        if (open >= 0) {
+          const close = matchingClose(toks, open);
+          items.push(parseRoutesBlock(toks.slice(open + 1, close)));
+          i = close + 1;
+          continue;
+        }
+      }
+      if (tk.t === 'word' && tk.v === 'component') {
+        const name = toks[i + 1] && toks[i + 1].t === 'word' ? toks[i + 1].v : '';
+        const open = toks.findIndex((t, j) => j > i && t.t === 'punct' && t.v === '{');
+        if (open >= 0) {
+          const close = matchingClose(toks, open);
+          items.push({ kind: 'component', name, ...parseComponentBlock(toks.slice(open + 1, close)) });
+          i = close + 1;
+          continue;
+        }
+      }
+      if (tk.t === 'word' && (tk.v === 'ui_layout' || tk.v === 'spatial_3d' || tk.v === 'world')) {
+        const kind = tk.v === 'ui_layout' ? 'ui_layout' : 'spatial_3d';
+        let j = i + 1;
+        let name = '';
+        if (toks[j] && toks[j].t === 'str') { name = toks[j].v; j++; }
+        const open = toks.findIndex((t, k) => k >= j && t.t === 'punct' && t.v === '{');
+        if (open >= 0) {
+          const close = matchingClose(toks, open);
+          const block = toks.slice(open + 1, close);
+          if (kind === 'ui_layout') {
+            items.push({ kind, name, root: parseUI(block) });
+          } else {
+            const rawStart = code.indexOf('{', code.indexOf(tk.v));
+            let raw = '';
+            if (rawStart >= 0) {
+              let depth = 0;
+              for (let k = rawStart; k < code.length; k++) {
+                if (code[k] === '{') depth++;
+                else if (code[k] === '}') { depth--; if (depth === 0) { raw = code.slice(rawStart + 1, k); break; } }
+              }
+            }
+            const directives = extractSpatialDirectives(raw || '');
+            items.push({ kind, name, directives });
+          }
+          i = close + 1;
+          continue;
+        }
+      }
+      i++;
+    }
+    return { items, blocks: items.length };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Mini Renderer — ui_layout → DOM (murni, tanpa WASM)
+  // ─────────────────────────────────────────────────────────────────────────
+  function el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  // adilang_seo (v1.11.0): aksesibilitas & SEO. Label ARIA resolusi template.
+  function ariaLabelOf(c, state) {
+    const s = c.ariaLabel || c.label || c.content || c.alt || c.name || '';
+    return resolveTemplate(s, state);
+  }
+
+  function renderLayoutIR(root, state) {
+    const wrap = el('div', 'adi-container');
+    wrap.setAttribute('role', 'group');
+    if (root.flex === 'row') wrap.style.flexDirection = 'row';
+    wrap.style.display = 'flex';
+    wrap.style.gap = '8px';
+    wrap.style.flexWrap = 'wrap';
+    (root.children || []).forEach((c) => {
+      if (c.kind === 'container') {
+        const sub = renderLayoutIR(c, state);
+        if (c.ariaLabel) sub.setAttribute('aria-label', resolveTemplate(c.ariaLabel, state));
+        wrap.appendChild(sub);
+      } else if (c.kind === 'text') {
+        const t = el('p', 'adi-text', resolveTemplate(c.content, state));
+        t.setAttribute('role', 'text');
+        if (c.ariaLabel) t.setAttribute('aria-label', resolveTemplate(c.ariaLabel, state));
+        wrap.appendChild(t);
+      } else if (c.kind === 'button') {
+        const b = el('button', 'adi-button', resolveTemplate(c.label, state));
+        b.setAttribute('aria-label', ariaLabelOf(c, state));
+        if (c.onClick) b.setAttribute('data-action', c.onClick);
+        wrap.appendChild(b);
+      } else if (c.kind === 'input') {
+        const inp = el('input', 'adi-input');
+        inp.name = c.name || '';
+        inp.placeholder = resolveTemplate(c.placeholder || '', state);
+        inp.setAttribute('aria-label', c.name || 'input');
+        if (c.bind) {
+          inp.setAttribute('data-bind', c.bind);
+          const val = state.get(c.bind);
+          if (val != null) inp.value = String(val);
+        }
+        if (c.validate) inp.setAttribute('data-validate', c.validate);
+        wrap.appendChild(inp);
+      } else if (c.kind === 'image') {
+        const img = el('img', 'adi-image');
+        img.alt = resolveTemplate(c.alt || c.label || 'gambar', state);
+        if (c.src) img.src = resolveTemplate(c.src, state);
+        wrap.appendChild(img);
+      } else if (c.kind === 'card') {
+        const card = el('div', 'adi-card');
+        card.setAttribute('role', 'group');
+        if (c.title) {
+          const h = el('h3', 'adi-card-title', resolveTemplate(c.title, state));
+          card.appendChild(h);
+        }
+        (c.children || []).forEach((cc) => card.appendChild(renderLayoutIR({ kind: 'container', children: [cc] }, state)));
+        wrap.appendChild(card);
+      } else if (c.kind === 'modal') {
+        const mod = el('div', 'adi-modal');
+        mod.setAttribute('role', 'dialog');
+        if (c.title) {
+          const h = el('h3', 'adi-modal-title', resolveTemplate(c.title, state));
+          mod.appendChild(h);
+        }
+        (c.children || []).forEach((cc) => mod.appendChild(renderLayoutIR({ kind: 'container', children: [cc] }, state)));
+        wrap.appendChild(mod);
+      } else if (c.kind === 'navbar') {
+        const nav = el('nav', 'adi-navbar');
+        if (c.title) nav.appendChild(el('span', 'adi-navbar-title', resolveTemplate(c.title, state)));
+        wrap.appendChild(nav);
+      } else if (c.kind === 'footer') {
+        const f = el('footer', 'adi-footer', resolveTemplate(c.content, state));
+        wrap.appendChild(f);
+      }
+    });
+    return wrap;
+  }
+
+  // adilang_seo — mirror semantik di LIGHT DOM (crawler & screen reader tidak
+  // menembus Shadow DOM). Visually-hidden tapi tetap di-DOM agar SEO-friendly.
+  function renderSEO(root, state) {
+    const mirror = el('div', 'adi-seo');
+    mirror.setAttribute('aria-label', 'konten ADILang (SEO)');
+    mirror.setAttribute(
+      'style',
+      'position:absolute;width:1px;height:1px;overflow:hidden;' +
+      'clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;'
+    );
+    (root.children || []).forEach((c) => {
+      if (c.kind === 'container') {
+        mirror.appendChild(renderSEO(c, state));
+      } else if (c.kind === 'text') {
+        const t = el('p', null, resolveTemplate(c.content, state));
+        t.setAttribute('role', 'text');
+        mirror.appendChild(t);
+      } else if (c.kind === 'button') {
+        const b = el('button', null, resolveTemplate(c.label, state));
+        b.setAttribute('aria-label', ariaLabelOf(c, state));
+        mirror.appendChild(b);
+      } else if (c.kind === 'input') {
+        const inp = el('input', null);
+        inp.name = c.name || '';
+        inp.placeholder = resolveTemplate(c.placeholder || '', state);
+        inp.setAttribute('aria-label', c.name || 'input');
+        mirror.appendChild(inp);
+      } else if (c.kind === 'image') {
+        const img = el('img', null);
+        img.alt = resolveTemplate(c.alt || c.label || 'gambar', state);
+        if (c.src) img.src = resolveTemplate(c.src, state);
+        mirror.appendChild(img);
+      } else if (c.kind === 'card' || c.kind === 'modal') {
+        const box = el(c.kind === 'card' ? 'section' : 'div', null);
+        if (c.title) box.appendChild(el('h3', null, resolveTemplate(c.title, state)));
+        (c.children || []).forEach((cc) => box.appendChild(renderSEO({ kind: 'container', children: [cc] }, state)));
+        mirror.appendChild(box);
+      } else if (c.kind === 'navbar') {
+        const nav = el('nav', null);
+        if (c.title) nav.appendChild(el('span', null, resolveTemplate(c.title, state)));
+        mirror.appendChild(nav);
+      } else if (c.kind === 'footer') {
+        mirror.appendChild(el('footer', null, resolveTemplate(c.content, state)));
+      }
+    });
+    return mirror;
+  }
+
+  // ── v1.12.0 — i18n translate + route matching + loader @use_js ───────────
+  function translateKey(locales, locale, key) {
+    if (locales && locales[locale] && Object.prototype.hasOwnProperty.call(locales[locale], key)) {
+      return locales[locale][key];
+    }
+    if (locales) {
+      for (const name of Object.keys(locales)) {
+        if (Object.prototype.hasOwnProperty.call(locales[name], key)) return locales[name][key];
+      }
+    }
+    return key;
+  }
+
+  function matchRoute(routes, path) {
+    if (!routes || !routes.length) return null;
+    const target = path || '/';
+    for (const r of routes) {
+      if (r.path === target) return r;
+    }
+    return routes[0]; // fallback ke rute pertama (home)
+  }
+
+  const adiUseJsLoaded = {};
+  function loadUseJs(url, cb) {
+    if (!global.document || !global.document.createElement) { if (cb) cb(null); return; }
+    if (adiUseJsLoaded[url]) { if (cb) cb(null); return; }
+    const s = global.document.createElement('script');
+    s.src = url;
+    s.async = true;
+    s.onload = function () { adiUseJsLoaded[url] = true; if (cb) cb(null); };
+    s.onerror = function () { if (cb) cb(new Error('Gagal memuat @use_js: ' + url)); };
+    global.document.head.appendChild(s);
+  }
+
+  function validateInputRules(value, rules) {
+    const failures = [];
+    (String(rules || '').split('|')).forEach((rule) => {
+      if (rule === 'required' && !String(value || '').trim()) failures.push('required');
+      else if (rule === 'email' && String(value || '').trim() &&
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim())) failures.push('email');
+    });
+    return failures;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ADILangEngine
+  // ─────────────────────────────────────────────────────────────────────────
+  class ADILangEngine {
+    constructor(container, opts) {
+      this.container = typeof container === 'string'
+        ? (global.document ? global.document.querySelector(container) : null)
+        : container;
+      if (!this.container) throw new Error('Container target tidak ditemukan');
+      this.opts = opts || {};
+      this.wasm = this.opts.wasm || (global.ADILangWasm || null);
+      this.state = new ReactiveState();
+      this.stateIsWasm = false;
+      this.program = null; // IR hasil parse (mini) — null bila pakai WASM
+      this.layouts = [];
+      this._listeners = {};
+      this._renderTarget = null;
+      this._bindings = []; // bound state paths → render ulang
+      if (this.opts.state) this.state.load(this.opts.state);
+    }
+
+    on(event, cb) {
+      (this._listeners[event] = this._listeners[event] || []).push(cb);
+      return this;
+    }
+
+    emit(event, data) {
+      (this._listeners[event] || []).forEach((cb) => {
+        try { cb(data); } catch (e) { this.emit('error', e); }
+      });
+    }
+
+    getState() {
+      if (this.stateIsWasm && this.wasm && this.wasm.adilang_get_state) {
+        try { return JSON.parse(this.wasm.adilang_get_state()); } catch (e) { /* fallthrough */ }
+      }
+      return this.state.snapshot();
+    }
+
+    setState(json) {
+      if (json && typeof json === 'object' && json.path) {
+        this.setStatePath(json.path, json.value);
+        return this;
+      }
+      if (this.stateIsWasm && this.wasm && this.wasm.adilang_update_state) {
+        try {
+          this.wasm.adilang_update_state(typeof json === 'string' ? json : JSON.stringify(json));
+        } catch (e) { /* fallthrough ke JS state */ }
+      }
+      this.state.load(json);
+      this.emit('statechange', this.state.snapshot());
+      this.autoReRender();
+      return this;
+    }
+
+    setStatePath(path, value) {
+      this.state.set(path, value);
+      if (this.stateIsWasm && this.wasm && this.wasm.adilang_state_set_json) {
+        try { this.wasm.adilang_state_set_json(path, JSON.stringify(value)); } catch (e) { /* ignore */ }
+      }
+      this.emit('statechange', this.state.snapshot());
+      this.autoReRender();
+      return this;
+    }
+
+    subscribe(path, cb) {
+      const id = this.state.subscribe(path, (p, v) => {
+        cb(p, v);
+        if (isRenderRelevant(p)) this.autoReRender();
+      });
+      return id;
+    }
+
+    async loadCode(code) {
+      if (this.wasm && this.wasm.adilang_parse_and_render) {
+        try {
+          const id = this.container.id || (this.container.id = 'adi-' + Math.random().toString(36).slice(2));
+          const res = JSON.parse(this.wasm.adilang_parse_and_render(code, id));
+          this.stateIsWasm = true;
+          this.emit('load', res);
+          if (res.payload) this.emit('payload', res.payload);
+          return res;
+        } catch (e) {
+          this.emit('error', e);
+        }
+      }
+      // Fallback: mini parser + renderer
+      const parsed = parseADILang(code);
+      this.stateIsWasm = false;
+      this.program = parsed;
+      this.layouts = parsed.items.filter((it) => it.kind === 'ui_layout');
+      parsed.items.forEach((it) => {
+        if (it.kind === 'payload') this.emit('payload', it);
+        if (it.kind === 'spatial_3d') this.emit('spatial3d', it);
+      });
+      this.emit('load', { status: 'ok', blocks_parsed: parsed.blocks, mode: 'mini' });
+      this.render();
+      return { status: 'ok', blocks_parsed: parsed.blocks, mode: 'mini' };
+    }
+
+    async loadUrl(url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Gagal memuat ' + url + ' (' + res.status + ')');
+      const code = await res.text();
+      return this.loadCode(code);
+    }
+
+    compileBinary(code) {
+      if (this.wasm && this.wasm.adilang_protocol_encode_source_to_b64) {
+        return this.wasm.adilang_protocol_encode_source_to_b64(code);
+      }
+      return null; // butuh WASM (adilang_protocol)
+    }
+
+    // ── adilang_spatial (v1.11.0) — procedural 3D + spatial UI ─────────────
+
+    generateShape(name, params) {
+      if (!this.wasm || !this.wasm.adilang_spatial_generate) return null; // butuh WASM
+      const p = params || {};
+      return JSON.parse(this.wasm.adilang_spatial_generate(
+        name,
+        p.radius || 0, p.tube || 0, p.inner || 0,
+        p.segments || 0, p.size || 0, p.count || 0
+      ));
+    }
+
+    spatialShapes() {
+      if (!this.wasm || !this.wasm.adilang_spatial_shapes) return null;
+      return JSON.parse(this.wasm.adilang_spatial_shapes());
+    }
+
+    renderSpatialUI(code, layoutName, width, height) {
+      if (!this.wasm || !this.wasm.adilang_spatial_ui_texture) return null;
+      return JSON.parse(this.wasm.adilang_spatial_ui_texture(code, layoutName, width, height));
+    }
+
+    // ── adilang_crdt (v1.11.0) — multi-agent collaborative state ──────────
+
+    crdtSet(path, value, agent) {
+      if (!this.wasm || !this.wasm.adilang_crdt_set) return null;
+      return this.wasm.adilang_crdt_set(path, value, agent || 'local');
+    }
+
+    crdtDelete(path, agent) {
+      if (!this.wasm || !this.wasm.adilang_crdt_delete) return null;
+      return this.wasm.adilang_crdt_delete(path, agent || 'local');
+    }
+
+    crdtGet(path) {
+      if (!this.wasm || !this.wasm.adilang_crdt_get) return null;
+      return this.wasm.adilang_crdt_get(path);
+    }
+
+    crdtSnapshot() {
+      if (!this.wasm || !this.wasm.adilang_crdt_snapshot) return null;
+      return JSON.parse(this.wasm.adilang_crdt_snapshot());
+    }
+
+    crdtLoadSnapshot(json) {
+      if (!this.wasm || !this.wasm.adilang_crdt_load_snapshot) return null;
+      return this.wasm.adilang_crdt_load_snapshot(typeof json === 'string' ? json : JSON.stringify(json));
+    }
+
+    crdtMerge(json) {
+      if (!this.wasm || !this.wasm.adilang_crdt_merge) return null;
+      return JSON.parse(this.wasm.adilang_crdt_merge(typeof json === 'string' ? json : JSON.stringify(json)));
+    }
+
+    crdtMissingOps(json) {
+      if (!this.wasm || !this.wasm.adilang_crdt_missing_ops) return null;
+      return JSON.parse(this.wasm.adilang_crdt_missing_ops(typeof json === 'string' ? json : JSON.stringify(json)));
+    }
+
+    // ── adilang_diff (v1.11.0) — diff/patch level-blok + Patch Script ──────
+
+    diff(srcA, srcB) {
+      if (!this.wasm || !this.wasm.adilang_diff) return null;
+      return JSON.parse(this.wasm.adilang_diff(srcA, srcB));
+    }
+
+    applyPatch(src, ops) {
+      if (!this.wasm || !this.wasm.adilang_apply_patch) return null;
+      return this.wasm.adilang_apply_patch(src, typeof ops === 'string' ? ops : JSON.stringify(ops));
+    }
+
+    parsePatchScript(script) {
+      if (!this.wasm || !this.wasm.adilang_parse_patch_script) return null;
+      return JSON.parse(this.wasm.adilang_parse_patch_script(script));
+    }
+
+    applyPatchScript(src, script) {
+      if (!this.wasm || !this.wasm.adilang_apply_patch_script) return null;
+      return this.wasm.adilang_apply_patch_script(src, script);
+    }
+
+    // ── adilang_analytics (v1.11.0) — telemetry engine ─────────────────────
+
+    analyticsRecordFrame(frameMs, renderMs) {
+      if (!this.wasm || !this.wasm.adilang_analytics_record_frame) return null;
+      return this.wasm.adilang_analytics_record_frame(frameMs || 0, renderMs || 0);
+    }
+
+    analyticsRecordEvent(kind) {
+      if (!this.wasm || !this.wasm.adilang_analytics_record_event) return null;
+      try { this.wasm.adilang_analytics_record_event(kind); return true; }
+      catch (_e) { return false; }
+    }
+
+    analyticsSnapshot() {
+      if (!this.wasm || !this.wasm.adilang_analytics_snapshot) return null;
+      return JSON.parse(this.wasm.adilang_analytics_snapshot());
+    }
+
+    analyticsReset() {
+      if (!this.wasm || !this.wasm.adilang_analytics_reset) return null;
+      return this.wasm.adilang_analytics_reset();
+    }
+
+    // ── adilang_vision (v1.11.0) — snapshot viewport ───────────────────────
+
+    captureViewportSnapshot() {
+      if (!this.wasm || !this.wasm.adilang_capture_viewport_snapshot) return null;
+      return this.wasm.adilang_capture_viewport_snapshot();
+    }
+
+    // ── adilang_target (v1.11.0) — render layer / backend selection ────────
+
+    targetInfo() {
+      if (!this.wasm || !this.wasm.adilang_target_info) return null;
+      return JSON.parse(this.wasm.adilang_target_info());
+    }
+
+    targetSelect(prefs) {
+      if (!this.wasm || !this.wasm.adilang_target_select) return null;
+      return JSON.parse(this.wasm.adilang_target_select(
+        typeof prefs === 'string' ? prefs : JSON.stringify(prefs || {})));
+    }
+
+    // ── v1.14.0: dense / ai_guard / diagnostics / machine runner ───────────
+
+    // Spesifikasi opcode map Dense (bitstream) — konstanta statis, sah tanpa WASM.
+    denseSpec() {
+      return [
+        'ADILang Dense Compact AST (v1.14.0)',
+        '0x01 NodeContainer | 0x02 NodeText | 0x03 NodeButton | 0x04 NodeInput |',
+        '0x05 NodeImage | 0x06 NodeNavbar | 0x07 NodeCard | 0x08 NodeModal | 0x09 NodeFooter',
+        '0x0A WebGLMeshCube | 0x0B WebGLMeshSphere | 0x0C WebGLMeshTorus |',
+        '0x0D WebGLMeshIcosa | 0x0E WebGLMeshRing | 0x0F WebGLMeshPlane | 0x10 WebGLMeshGrid |',
+        '0x11 Node3DCamera | 0x12 Node3DLight | 0x13 Node3DEntity',
+      ].join('\n');
+    }
+
+    denseSizeReport(src) {
+      if (!this.wasm || !this.wasm.adilang_dense_size_report) return null;
+      return JSON.parse(this.wasm.adilang_dense_size_report(src || ''));
+    }
+
+    aiGuardSign(src) {
+      if (!this.wasm || !this.wasm.adilang_ai_guard_sign) return null;
+      return this.wasm.adilang_ai_guard_sign(src || '');
+    }
+
+    aiGuardVerify(src) {
+      if (!this.wasm || !this.wasm.adilang_ai_guard_verify) return null;
+      return JSON.parse(this.wasm.adilang_ai_guard_verify(src || ''));
+    }
+
+    diagPayload(src) {
+      if (!this.wasm || !this.wasm.adilang_diag_payload) return null;
+      return JSON.parse(this.wasm.adilang_diag_payload(src || ''));
+    }
+
+    machineRunLifecycle(bytes, component, kind) {
+      if (!this.wasm || !this.wasm.adilang_machine_run_lifecycle) return null;
+      return JSON.parse(this.wasm.adilang_machine_run_lifecycle(bytes, component, kind));
+    }
+
+    machineDomOps(bytes) {
+      if (!this.wasm || !this.wasm.adilang_machine_dom_ops) return null;
+      return JSON.parse(this.wasm.adilang_machine_dom_ops(bytes));
+    }
+
+    machineWebglOps(bytes) {
+      if (!this.wasm || !this.wasm.adilang_machine_webgl_ops) return null;
+      return JSON.parse(this.wasm.adilang_machine_webgl_ops(bytes));
+    }
+
+    machineFireEvent(bytes, entityId, event) {
+      if (!this.wasm || !this.wasm.adilang_machine_fire_event) return null;
+      return JSON.parse(this.wasm.adilang_machine_fire_event(bytes, entityId || '', event));
+    }
+
+    machineComponents(bytes) {
+      if (!this.wasm || !this.wasm.adilang_machine_components) return null;
+      return JSON.parse(this.wasm.adilang_machine_components(bytes));
+    }
+
+    render() {
+      if (!this.program) return;
+      if (!this.container) return;
+      this.container.innerHTML = '';
+      this.container.classList.add('adi-root');
+      const host = el('div', 'adi-render');
+      this.layouts.forEach((layout) => {
+        const slot = el('div', 'adi-layout', layout.name);
+        slot.appendChild(renderLayoutIR(layout.root, this.state));
+        host.appendChild(slot);
+      });
+      this.container.appendChild(host);
+      // adilang_seo — mirror semantik di light DOM (crawler/screen reader).
+      this.layouts.forEach((layout) => {
+        this.container.appendChild(renderSEO(layout.root, this.state));
+      });
+      // delegasi klik → action
+      host.addEventListener('click', (e) => {
+        const btn = e.target.closest('.adi-button');
+        if (btn && btn.dataset.action) {
+          this.emit('action', { action: btn.dataset.action, event: e });
+        }
+      });
+    }
+
+    autoReRender() {
+      if (!this.stateIsWasm) this.render();
+    }
+
+    destroy() {
+      if (this.container) this.container.innerHTML = '';
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // <adi-runner> Custom Element
+  // ─────────────────────────────────────────────────────────────────────────
+  class ADIRunner extends (global.HTMLElement || Object) {
+    static get observedAttributes() { return ['src', 'autostart', 'width', 'height']; }
+
+    constructor() {
+      super();
+      this._engine = null;
+      this._loaded = false;
+      this._shadow = null;
+    }
+
+    connectedCallback() {
+      if (this._shadow) return;
+      if (!global.document || !global.document.createElement) {
+        this.textContent = 'adi-runner memerlukan DOM.';
+        return;
+      }
+      this._shadow = this.attachShadow ? this.attachShadow({ mode: 'open' }) : this;
+      const style = global.document.createElement('style');
+      style.textContent =
+        ':host{display:block;position:relative;}' +
+        '.adi-root{min-height:40px;font-family:ui-monospace,monospace;font-size:14px;color:#c8f6ff;}' +
+        '.adi-container{background:rgba(0,0,0,.25);border-radius:10px;padding:10px;border:1px solid rgba(90,200,255,.25);}' +
+        '.adi-button{cursor:pointer;padding:6px 14px;border:1px solid rgba(90,200,255,.5);border-radius:6px;background:rgba(20,60,90,.6);color:#dff6ff;}' +
+        '.adi-button:hover{background:rgba(40,120,170,.7);}' +
+        '.adi-input{background:rgba(0,0,0,.3);color:#eaffff;border:1px solid rgba(90,200,255,.35);border-radius:6px;padding:6px 10px;}' +
+        '.adi-text{color:#eaffff;}';
+      this._shadow.appendChild(style);
+      const host = global.document.createElement('div');
+      host.className = 'adi-root';
+      this._shadow.appendChild(host);
+      this._host = host;
+      if (this.hasAttribute('width')) host.style.width = this.getAttribute('width');
+      if (this.hasAttribute('height')) host.style.height = this.getAttribute('height');
+      if (this.hasAttribute('autostart') && this.getAttribute('src')) this.load();
+    }
+
+    get engine() { return this._engine; }
+
+    async load() {
+      const src = this.getAttribute('src');
+      if (!src) { this.dispatchError(new Error('Atribut src wajib diisi')); return; }
+      try {
+        this._engine = new ADILangEngine(this._host, { wasm: global.ADILangWasm || null });
+        this._engine.on('payload', (p) => this.dispatch('adi:payload', p));
+        this._engine.on('spatial3d', (s) => this.dispatch('adi:spatial3d', s));
+        this._engine.on('action', (a) => this.dispatch('adi:action', a));
+        this._engine.on('error', (e) => this.dispatch('adi:error', e));
+        const res = await this._engine.loadUrl(src);
+        this._loaded = true;
+        this.dispatch('adi:load', res);
+      } catch (err) {
+        this.dispatchError(err);
+      }
+    }
+
+    dispatch(type, detail) {
+      if (typeof CustomEvent === 'function') {
+        this.dispatchEvent(new CustomEvent(type, { detail, bubbles: true }));
+      }
+    }
+
+    dispatchError(err) {
+      this.dispatch('adi:error', { message: String(err && err.message || err) });
+    }
+
+    attributeChangedCallback(name) {
+      if (this._loaded && name === 'src' && this.isConnected) this.load();
+    }
+  }
+
+  // register hanya bila customElements tersedia
+  try {
+    if (global.customElements && !global.customElements.get('adi-runner')) {
+      global.customElements.define('adi-runner', ADIRunner);
+    }
+  } catch (e) { /* node / lingkungan non-browser */ }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ADILangJITEngine — live preview zero-build (v1.12.0).
+  // SPA router (routes) + i18n (@i18n/@set_locale) + @use_js CDN loader +
+  // ui_std components + form binding (bind @state.*) — tanpa langkah build.
+  // Dipakai oleh adilang-build: index.html → ADILangJITEngine.bootFromInline.
+  // ─────────────────────────────────────────────────────────────────────────
+  class ADILangJITEngine extends ADILangEngine {
+    constructor(container, opts) {
+      super(container, opts);
+      this.routes = [];
+      this.layoutsByName = {};
+      this.locales = {};
+      this.locale = (opts && opts.locale) || 'en';
+      this.currentPath = (opts && opts.path) || '/';
+      this.useJsQueue = [];
+      this._lastSource = '';
+    }
+
+    static bootFromInline(root) {
+      const scr = root.querySelector('script[type="text/adi"]');
+      if (!scr) throw new Error('Tidak ada <script type="text/adi"> di root');
+      const engine = new ADILangJITEngine(root);
+      return engine.loadCode(scr.textContent).then(() => engine);
+    }
+
+    async loadCode(code) {
+      this._loadJIT(code);
+      return { status: 'ok', blocks_parsed: this.program.blocks, mode: 'jit' };
+    }
+
+    // ── v1.13.0: HMR via WebSocket /__adi_ws (frame HMR_CONNECT/HMR_RELOAD) ──
+
+    enableHMR(wsUrl, src) {
+      if (typeof global.WebSocket !== 'function') return this;
+      const self = this;
+      this._hmrSource = src || null;
+      try {
+        this._hmrWs = new global.WebSocket(wsUrl || '/__adi_ws');
+        this._hmrWs.onmessage = (ev) => {
+          if (ev.data === 'HMR_RELOAD') self._hmrReload();
+        };
+        this._hmrWs.onclose = () => { self._hmrWs = null; };
+        this._hmrWs.onerror = () => { self._hmrWs = null; };
+      } catch (e) { this._hmrWs = null; }
+      return this;
+    }
+
+    async _hmrReload() {
+      let code = null;
+      if (this._hmrSource) {
+        try {
+          const r = await fetch(this._hmrSource);
+          if (r.ok) code = await r.text();
+        } catch (e) { /* fallthrough */ }
+      }
+      if (code == null) code = this._lastSource;
+      if (code == null) return;
+      this._loadJIT(code);
+      this.emit('hmr', { status: 'reloaded', blocks: this.program.blocks });
+    }
+
+    _loadJIT(code) {
+      this._lastSource = code;
+      const parsed = parseADILang(code);
+      this.stateIsWasm = false;
+      this.program = parsed;
+      this.layouts = parsed.items.filter((it) => it.kind === 'ui_layout');
+      this.layoutsByName = {};
+      this.layouts.forEach((l) => { this.layoutsByName[l.name] = l; });
+      this.components = parsed.items.filter((it) => it.kind === 'component');
+      this.routes = (parsed.items.find((it) => it.kind === 'routes') || { routes: [] }).routes;
+      this.locales = (parsed.items.find((it) => it.kind === 'i18n') || { locales: {} }).locales;
+      this.useJsQueue = parsed.items.filter((it) => it.kind === 'use_js').map((it) => it.url);
+      parsed.items.forEach((it) => {
+        if (it.kind === 'payload') this.emit('payload', it);
+        if (it.kind === 'spatial_3d') {
+          this.emit('spatial3d', it);
+          (it.directives || []).forEach((d) => {
+            if (d.type === 'set_locale' && !this.locales[this.locale]) this.locale = d.arg;
+          });
+        }
+      });
+      this.useJsQueue.forEach((u) => loadUseJs(u, (err) => { if (err) this.emit('error', err); }));
+      this.currentLayoutName = this.routes.length
+        ? (matchRoute(this.routes, this.currentPath) || { layout: null }).layout
+        : null;
+      this.emit('load', {
+        status: 'ok', blocks_parsed: parsed.blocks, mode: 'jit',
+        routes: this.routes.length, locales: Object.keys(this.locales),
+        components: this.components.length,
+      });
+      this.render();
+      this._bindRouter();
+      // Lifecycle mount: jalankan hook on_mount setiap komponen.
+      this.components.forEach((c) => this.runLifecycle(c.name, 'on_mount'));
+      return { status: 'ok', blocks_parsed: parsed.blocks, mode: 'jit' };
+    }
+
+    // ── v1.13.0: lifecycle hook dispatch (mirror adilang_run_lifecycle WASM) ──
+
+    runLifecycle(name, kind) {
+      if (HOOK_KINDS.indexOf(kind) < 0) return [];
+      const comp = this.components.find((c) => c.name === name);
+      if (!comp) return [];
+      const calls = (comp.hooks[kind] || []).slice();
+      calls.forEach((d) => this.emit('directive', { component: name, kind, directive: d }));
+      return calls;
+    }
+
+    _bindRouter() {
+      if (!this.routes.length) return;
+      if (global.addEventListener) {
+        global.addEventListener('hashchange', () => {
+          const h = global.location && global.location.hash ? global.location.hash.replace(/^#/, '') : '/';
+          this.navigate(h);
+        });
+      }
+      if (global.location && global.location.hash) {
+        this.currentPath = global.location.hash.replace(/^#/, '') || '/';
+      }
+    }
+
+    routeFor(path) { return matchRoute(this.routes, path); }
+
+    currentRoute() { return this.routeFor(this.currentPath); }
+
+    routesList() { return this.routes.slice(); }
+
+    navigate(path) {
+      const target = String(path || '/');
+      if (target === this.currentPath && this.currentLayoutName) return false;
+      const m = matchRoute(this.routes, target);
+      this.currentPath = target;
+      if (m) {
+        this.currentLayoutName = m.layout;
+        if (global.history && global.history.pushState) {
+          try { global.history.pushState(null, '', '#' + target); } catch (e) { /* ignore */ }
+        }
+        this.emit('routechange', { path: target, layout: m.layout, transition: m.transition || null });
+        this.render(m.transition || null);
+        return true;
+      }
+      return false;
+    }
+
+    setLocale(locale) {
+      if (!this.locales[locale]) return false;
+      this.locale = locale;
+      this.emit('localechange', locale);
+      this.render();
+      return true;
+    }
+
+    t(key) { return translateKey(this.locales, this.locale, key); }
+
+    render(transition) {
+      if (!this.program) return;
+      if (!this.container) return;
+      if (!global.document || !global.document.createElement) return;
+      this.container.innerHTML = '';
+      this.container.classList.add('adi-root');
+      const host = el('div', 'adi-render');
+      if (transition) host.setAttribute('data-transition', transition);
+      const layout = this.currentLayoutName ? this.layoutsByName[this.currentLayoutName] : null;
+      if (layout) {
+        const slot = el('div', 'adi-layout', layout.name);
+        slot.appendChild(renderLayoutIR(layout.root, this.state));
+        host.appendChild(slot);
+      } else {
+        this.layouts.forEach((l) => {
+          const slot = el('div', 'adi-layout', l.name);
+          slot.appendChild(renderLayoutIR(l.root, this.state));
+          host.appendChild(slot);
+        });
+      }
+      this.container.appendChild(host);
+      this._wireDom(host);
+    }
+
+    _wireDom(host) {
+      host.addEventListener('click', (e) => {
+        const btn = e.target.closest('.adi-button');
+        if (!btn || !btn.dataset.action) return;
+        const action = btn.dataset.action;
+        this.emit('action', { action, event: e });
+        const d = this.findSpatialDirective(action);
+        if (d) {
+          if (d.type === 'navigate') this.navigate(d.arg);
+          else if (d.type === 'set_locale') this.setLocale(d.arg);
+        }
+      });
+      host.addEventListener('input', (e) => {
+        const inp = e.target.closest('.adi-input');
+        if (!inp || !inp.dataset.bind) return;
+        this.setStatePath(inp.dataset.bind, inp.value);
+        if (inp.dataset.validate) {
+          const failures = validateInputRules(inp.value, inp.dataset.validate);
+          const bad = failures.length > 0;
+          inp.setAttribute('data-invalid', bad ? 'true' : 'false');
+          inp.classList.toggle('adi-invalid', bad);
+          inp.setAttribute('aria-invalid', bad ? 'true' : 'false');
+          this.emit('validation', { name: inp.name, bind: inp.dataset.bind, failures });
+        }
+      });
+    }
+
+    findSpatialDirective(action) {
+      const items = (this.program ? this.program.items : []);
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].kind === 'spatial_3d') {
+          const ds = items[i].directives || [];
+          for (let k = 0; k < ds.length; k++) {
+            if (ds[k].type === 'navigate' && ds[k].arg) return { type: 'navigate', arg: ds[k].arg };
+            if (ds[k].type === 'set_locale' && ds[k].arg) return { type: 'set_locale', arg: ds[k].arg };
+          }
+        }
+      }
+      return null;
+    }
+
+    destroy() {
+      if (this.components) {
+        this.components.forEach((c) => this.runLifecycle(c.name, 'on_unmount'));
+      }
+      if (this._hmrWs) { try { this._hmrWs.close(); } catch (e) { /* ignore */ } this._hmrWs = null; }
+      super.destroy();
+    }
+
+    testReport(code) {
+      const src = code != null ? code : this._lastSource;
+      if (this.wasm && this.wasm.adilang_test_report) {
+        try { return JSON.parse(this.wasm.adilang_test_report(src)); } catch (e) { /* fallback */ }
+      }
+      const parsed = parseADILang(src);
+      const checks = [];
+      checks.push({ name: 'parse', ok: parsed.blocks > 0, message: parsed.blocks + ' blok ter-parse' });
+      checks.push({ name: 'routes', ok: this.routes.length > 0, message: this.routes.length + ' rute' });
+      checks.push({ name: 'i18n', ok: Object.keys(this.locales).length > 0, message: Object.keys(this.locales).length + ' locale' });
+      checks.push({ name: 'use_js', ok: true, message: this.useJsQueue.length + ' skrip antri' });
+      const failed = checks.filter((c) => !c.ok);
+      return { version: VERSION, passed: checks.length - failed.length, failed: failed.length, checks };
+    }
+  }
+
+  function selfTest() {
+    const results = [];
+    function check(name, cond) { results.push({ name, ok: !!cond }); }
+
+    // ReactiveState
+    const rs = new ReactiveState();
+    let hits = 0;
+    rs.subscribe('ui', () => hits++);
+    rs.set('ui.player.health', 50);
+    rs.set('payload.intent', 'hi'); // di luar prefix
+    check('reactive: prefix ui trigger', hits === 1);
+    check('reactive: get dot-path', rs.get('ui.player.health') === 50);
+    rs.set('ui.player.health', 50);
+    check('reactive: set sama tidak mutasi', rs.revision === 2);
+    rs.set('ui.player.health', 60);
+    check('reactive: revisi naik', rs.revision === 3 && hits === 2);
+
+    // Mini parser
+    const code =
+      '@payload { sender "ai-1" target_agent "ai-2" intent "collaborate" state_data { status "active" } }\n' +
+      'ui_layout "hud" { container { flex row text "Hello" button "Send" onClick send } }\n' +
+      'spatial_3d "scene" { camera "cam" { pos (0 1.6 7) } }\n';
+    const parsed = parseADILang(code);
+    check('parser: 3 blok', parsed.items.length === 3);
+    const payload = parsed.items.find((it) => it.kind === 'payload');
+    check('parser: payload', payload && payload.intent === 'collaborate' && payload.state_data.status === 'active');
+    const ui = parsed.items.find((it) => it.kind === 'ui_layout');
+    check('parser: ui_layout root', ui && ui.root.kind === 'container' && ui.root.children[0].flex === 'row');
+    check('parser: button label', ui && ui.root.children[0].children[0].content === 'Hello' && ui.root.children[0].children[1].kind === 'button' && ui.root.children[0].children[1].onClick === 'send');
+    const sp = parsed.items.find((it) => it.kind === 'spatial_3d');
+    check('parser: spatial_3d', sp && sp.name === 'scene');
+
+    // resolveTemplate
+    const st = new ReactiveState();
+    st.set('payload.intent', 'query');
+    check('template: {{path}}', resolveTemplate('intent: {{payload.intent}}', st) === 'intent: query');
+
+    // adilang_spatial (tanpa WASM → fallback null tanpa error)
+    const engine = new ADILangEngine({});
+    check('spatial: generateShape ada', typeof engine.generateShape === 'function');
+    check('spatial: shapes ada', typeof engine.spatialShapes === 'function');
+    check('spatial: uiTexture ada', typeof engine.renderSpatialUI === 'function');
+    check('spatial: null tanpa wasm', engine.generateShape('sphere') === null && engine.spatialShapes() === null);
+
+    // adilang_crdt (tanpa WASM → fallback null tanpa error)
+    check('crdt: set ada', typeof engine.crdtSet === 'function');
+    check('crdt: snapshot ada', typeof engine.crdtSnapshot === 'function');
+    check('crdt: merge ada', typeof engine.crdtMerge === 'function');
+    check('crdt: missingOps ada', typeof engine.crdtMissingOps === 'function');
+    check('crdt: null tanpa wasm', engine.crdtSet('/ui/btn', 'x', 'A') === null && engine.crdtSnapshot() === null);
+
+    // adilang_diff (v1.11.0) — diff/patch (tanpa WASM → fallback null)
+    check('diff: diff ada', typeof engine.diff === 'function');
+    check('diff: applyPatch ada', typeof engine.applyPatch === 'function');
+    check('diff: parsePatchScript ada', typeof engine.parsePatchScript === 'function');
+    check('diff: applyPatchScript ada', typeof engine.applyPatchScript === 'function');
+    check('diff: null tanpa wasm', engine.diff('a', 'b') === null && engine.applyPatchScript('a', 'x') === null);
+
+    // adilang_analytics (v1.11.0) — telemetry (tanpa WASM → fallback null)
+    check('analytics: recordFrame ada', typeof engine.analyticsRecordFrame === 'function');
+    check('analytics: snapshot ada', typeof engine.analyticsSnapshot === 'function');
+    check('analytics: reset ada', typeof engine.analyticsReset === 'function');
+    check('analytics: null tanpa wasm', engine.analyticsSnapshot() === null && engine.analyticsRecordEvent('load') === null);
+
+    // adilang_vision (v1.11.0) — snapshot viewport (tanpa WASM → null)
+    check('vision: captureViewportSnapshot ada', typeof engine.captureViewportSnapshot === 'function');
+    check('vision: null tanpa wasm', engine.captureViewportSnapshot() === null);
+
+    // adilang_target (v1.11.0) — render backend selection (tanpa WASM → null)
+    check('target: info ada', typeof engine.targetInfo === 'function');
+    check('target: select ada', typeof engine.targetSelect === 'function');
+    check('target: null tanpa wasm', engine.targetInfo() === null && engine.targetSelect({}) === null);
+
+    // adilang_seo (v1.11.0) — renderSEO harus menghasilkan ARIA + tag semantic.
+    if (global.document && global.document.createElement) {
+      check('seo: renderLayoutIR button punya aria-label', (() => {
+        const st = new ReactiveState();
+        const n = renderLayoutIR({ kind: 'container', children: [{ kind: 'button', label: 'Kirim' }] }, st);
+        return n.querySelector('button') && n.querySelector('button').getAttribute('aria-label') === 'Kirim';
+      })());
+      check('seo: renderLayoutIR input punya aria-label', (() => {
+        const st = new ReactiveState();
+        const n = renderLayoutIR({ kind: 'container', children: [{ kind: 'input', name: 'q' }] }, st);
+        return n.querySelector('input') && n.querySelector('input').getAttribute('aria-label') === 'q';
+      })());
+      check('seo: renderLayoutIR text pakai tag p', (() => {
+        const st = new ReactiveState();
+        const n = renderLayoutIR({ kind: 'container', children: [{ kind: 'text', content: 'Halo' }] }, st);
+        return n.querySelector('p') && n.querySelector('p').textContent === 'Halo';
+      })());
+      check('seo: renderSEO menyalin konten + alt image', (() => {
+        const st = new ReactiveState();
+        const root = { kind: 'container', children: [
+          { kind: 'text', content: 'judul' },
+          { kind: 'image', alt: 'logo ADI', src: '/img/adi.png' },
+          { kind: 'button', label: 'OK' },
+        ] };
+        const m = renderSEO(root, st);
+        const p = m.querySelector('p');
+        const img = m.querySelector('img');
+        const btn = m.querySelector('button');
+        return p && p.textContent === 'judul' &&
+          img && img.getAttribute('alt') === 'logo ADI' && img.getAttribute('src') === '/img/adi.png' &&
+          btn && btn.getAttribute('aria-label') === 'OK';
+      })());
+    }
+
+    // ── v1.12.0: @use_js / routes / @i18n / ui_std / binding form / JIT ──
+    const code2 =
+      '@use_js { url "https://cdn.example/lib.js" }\n' +
+      'routes { route "/" layout "home" transition "fade" route "/about" layout "about" }\n' +
+      '@i18n { locale "en" { welcome "Hello" } locale "id" { welcome "Halo" } }\n' +
+      'ui_layout "home" { navbar "ADI" card "Panel" { input "user" bind: @state.username validate "required|email" } footer "© 2026" }\n' +
+      'ui_layout "about" { text "About" }\n' +
+      'world "W" { entity "e" { on click { @navigate("/about") @set_locale("id") } } }\n';
+    const p2 = parseADILang(code2);
+    const useJs = p2.items.find((it) => it.kind === 'use_js');
+    check('v112: parse @use_js', useJs && useJs.url === 'https://cdn.example/lib.js');
+    const routes = p2.items.find((it) => it.kind === 'routes');
+    check('v112: parse routes', routes && routes.routes.length === 2 && routes.routes[0].layout === 'home' && routes.routes[0].transition === 'fade');
+    const i18n = p2.items.find((it) => it.kind === 'i18n');
+    check('v112: parse @i18n', i18n && i18n.locales.en.welcome === 'Hello' && i18n.locales.id.welcome === 'Halo');
+    const uiHome = p2.items.find((it) => it.kind === 'ui_layout' && it.name === 'home');
+    const rootC = (uiHome && uiHome.root.children) || [];
+    const navbar = rootC[0];
+    const card = rootC[1];
+    const inputC = card && card.children[0];
+    check('v112: navbar title', navbar && navbar.kind === 'navbar' && navbar.title === 'ADI');
+    check('v112: card children + bind/validate', card && card.kind === 'card' && inputC && inputC.kind === 'input' && inputC.bind === 'state.username' && inputC.validate === 'required|email');
+    check('v112: translateKey', translateKey(i18n.locales, 'en', 'welcome') === 'Hello' && translateKey(i18n.locales, 'id', 'welcome') === 'Halo' && translateKey(i18n.locales, 'xx', 'missing') === 'missing');
+    check('v112: matchRoute', matchRoute(routes.routes, '/about').layout === 'about' && matchRoute(routes.routes, '/nope').layout === 'home');
+    check('v112: validateInputRules', validateInputRules('', 'required').indexOf('required') >= 0 && validateInputRules('a@b.com', 'email').length === 0 && validateInputRules('nope', 'email').indexOf('email') >= 0);
+    const dirs = extractSpatialDirectives('on click { @navigate("/about") @set_locale("id") }');
+    check('v112: extractSpatialDirectives', dirs.length === 2 && dirs[0].type === 'navigate' && dirs[0].arg === '/about' && dirs[1].type === 'set_locale' && dirs[1].arg === 'id');
+
+    // ADILangJITEngine (headless: render di-skip tanpa DOM)
+    const jit = new ADILangJITEngine({}, { locale: 'id' });
+    jit._loadJIT(code2);
+    check('v112: jit routes', jit.routes.length === 2);
+    check('v112: jit currentRoute /', jit.currentRoute() && jit.currentRoute().layout === 'home');
+    check('v112: jit navigate', jit.navigate('/about') === true && jit.currentLayoutName === 'about');
+    check('v112: jit navigate route default fallback', (() => { jit.navigate('/nope'); return jit.currentLayoutName === 'home'; })());
+    check('v112: jit i18n', jit.t('welcome') === 'Halo' && jit.setLocale('en') === true && jit.t('welcome') === 'Hello');
+    check('v112: jit setLocale invalid', jit.setLocale('zz') === false);
+    check('v112: jit use_js queue', jit.useJsQueue[0] === 'https://cdn.example/lib.js');
+    check('v112: jit findSpatialDirective', (() => { const d = jit.findSpatialDirective('click'); return d && d.type === 'navigate'; })());
+    check('v112: jit testReport', (() => { const r = jit.testReport(code2); return r.passed === 4 && r.failed === 0; })());
+
+    // ── v1.13.0: component (lifecycle hooks) + directive @name(args) + HMR ──
+    const code3 =
+      'component ProfileCard { on_mount: @fetch_data("users") @log_state() on_update: @sync_state("x") on_unmount: @cleanup_state() }\n' +
+      'ui_layout "home" { text "Hello" }\n';
+    const p3 = parseADILang(code3);
+    const comp = p3.items.find((it) => it.kind === 'component');
+    check('v113: parse component', comp && comp.name === 'ProfileCard');
+    check('v113: hook on_mount directives', comp && comp.hooks.on_mount.length === 2 && comp.hooks.on_mount[0].name === 'fetch_data' && comp.hooks.on_mount[0].args[0] === 'users');
+    check('v113: hook on_update directives', comp && comp.hooks.on_update[0].name === 'sync_state' && comp.hooks.on_update[0].args[0] === 'x');
+    check('v113: hook on_unmount directives', comp && comp.hooks.on_unmount[0].name === 'cleanup_state');
+    const jit3 = new ADILangJITEngine({}, { locale: 'id' });
+    const lifeDirs = [];
+    jit3.on('directive', (d) => lifeDirs.push(d));
+    jit3._loadJIT(code3);
+    check('v113: jit components', jit3.components.length === 1 && jit3.components[0].name === 'ProfileCard');
+    check('v113: jit on_mount auto-fire', lifeDirs.length === 2 && lifeDirs[0].directive.name === 'fetch_data');
+    check('v113: jit runLifecycle on_unmount', (() => {
+      const out = jit3.runLifecycle('ProfileCard', 'on_unmount');
+      return out.length === 1 && out[0].name === 'cleanup_state';
+    })());
+    check('v113: jit runLifecycle tak dikenal', (() => {
+      const out = jit3.runLifecycle('Nope', 'on_mount');
+      return out.length === 0;
+    })());
+    check('v113: jit destroy fire on_unmount', (() => {
+      const before = lifeDirs.length;
+      jit3.destroy();
+      return lifeDirs.length === before + 1 && lifeDirs[lifeDirs.length - 1].directive.name === 'cleanup_state';
+    })());
+    // HMR: fake WebSocket yang mengirim HMR_RELOAD setelah connect.
+    class FakeWS {
+      constructor(url) { this.url = url; FakeWS.last = this; }
+      onmessage(ev) {}
+      close() { this.closed = true; }
+    }
+    const savedWS = global.WebSocket;
+    global.WebSocket = FakeWS;
+    try {
+      const jitH = new ADILangJITEngine({});
+      jitH._loadJIT('component A { on_mount: @ping() }\n');
+      jitH.enableHMR('/__adi_ws', null);
+      let hmrHits = 0;
+      jitH.on('hmr', () => hmrHits++);
+      FakeWS.last.onmessage({ data: 'HMR_CONNECT' });
+      FakeWS.last.onmessage({ data: 'HMR_RELOAD' });
+      check('v113: jit HMR reload pakai _lastSource', jitH.program.blocks >= 1 && hmrHits === 1);
+      jitH._loadJIT('component B { on_mount: @ping() }');
+      check('v113: jit HMR reload ulang pakai source baru', (() => {
+        const b0 = jitH.program.blocks;
+        FakeWS.last.onmessage({ data: 'HMR_RELOAD' });
+        return b0 >= 1 && hmrHits === 2;
+      })());
+      jitH.destroy();
+      check('v113: jit HMR ws ditutup saat destroy', FakeWS.last.closed === true);
+    } finally {
+      global.WebSocket = savedWS;
+    }
+
+    // ── v1.14.0: dense / ai_guard / diagnostics / machine runner ──────────
+    const engine14 = new ADILangEngine({});
+    check('v114: dense spec ada', typeof engine14.denseSpec === 'function');
+    check('v114: dense sizeReport ada', typeof engine14.denseSizeReport === 'function');
+    check('v114: ai_guard sign/verify ada', typeof engine14.aiGuardSign === 'function' && typeof engine14.aiGuardVerify === 'function');
+    check('v114: diag payload ada', typeof engine14.diagPayload === 'function');
+    check('v114: machine run ada', typeof engine14.machineRunLifecycle === 'function' && typeof engine14.machineDomOps === 'function' && typeof engine14.machineWebglOps === 'function' && typeof engine14.machineFireEvent === 'function' && typeof engine14.machineComponents === 'function');
+    check('v114: dense spec memuat opcode map', (() => {
+      const s = engine14.denseSpec();
+      return typeof s === 'string' && s.indexOf('0x01') >= 0 && s.indexOf('0x0A') >= 0 && s.indexOf('0x13') >= 0;
+    })());
+    check('v114: dense/guard/diag/machine null tanpa wasm', (() => {
+      const b = new Uint8Array([0xAD, 0x04]);
+      return engine14.denseSizeReport('') === null &&
+        engine14.aiGuardSign('x') === null && engine14.aiGuardVerify('x') === null &&
+        engine14.diagPayload('') === null &&
+        engine14.machineRunLifecycle(b, 'A', 'on_mount') === null &&
+        engine14.machineDomOps(b) === null && engine14.machineWebglOps(b) === null &&
+        engine14.machineFireEvent(b, '', 'click') === null && engine14.machineComponents(b) === null;
+    })());
+
+    const failed = results.filter((r) => !r.ok);
+    return { version: VERSION, total: results.length, passed: results.length - failed.length, failed, results };
+  }
+
+  return {
+    VERSION,
+    version: VERSION,
+    ReactiveState,
+    ADILangEngine,
+    ADIRunner,
+    ADILangJITEngine,
+    parseADILang,
+    parseUIAttrs,
+    renderLayoutIR,
+    renderSEO,
+    resolveTemplate,
+    isRenderRelevant,
+    translateKey,
+    matchRoute,
+    validateInputRules,
+    extractSpatialDirectives,
+    loadUseJs,
+    selfTest,
+  };
+});
+
+  </script>
+  <script>
+    window.addEventListener("DOMContentLoaded", function () {
+      var root = document.getElementById("app");
+      if (window.ADILangJITEngine && root) {
+        window.ADILangJITEngine.bootFromInline(root).then(function (e) {
+          window.__adiEngine = e;
+        });
+      }
+    });
+  </script>
+</body>
+</html>
