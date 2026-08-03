@@ -1,0 +1,65 @@
+@payload { 
+    sender "adi" 
+    target_agent "web" 
+    intent "build" 
+}
+
+@i18n { 
+    locale "id" { 
+        title "TokoMudah Online"
+        tagline "Belanja praktis, cepat, dan aman di satu tempat"
+        sk1 "Produk Terbaru"
+        sk2 "Pengiriman Cepat"
+        sk3 "Pembayaran Aman"
+        topic_name "Ecommerce"
+        topic_desc "Belanja online tanpa ribet"
+        kirim "Kirim Pesan"
+        cta "Belanja Sekarang"
+        nama "Nama Anda"
+        email "Email Anda"
+        pesan "Pesan Anda"
+    } 
+    locale "en" { 
+        title "TokoMudah Online"
+        tagline "Practical, fast, and secure shopping in one place"
+    } 
+}
+
+routes { 
+    route "/" layout "home" transition "fade"
+}
+
+ui_layout "home" { 
+    navbar "TokoMudah Online"
+    container { 
+        flex column { 
+            text "TokoMudah Online"
+            text "Belanja praktis, cepat, dan aman di satu tempat"
+            button "Belanja Sekarang" onClick belanja
+        }
+    }
+    card "Keunggulan Kami" { 
+        text "Produk Terbaru — kami selalu update produk terbaru untuk Anda"
+        text "Pengiriman Cepat — pengiriman yang cepat dan efisien"
+        text "Pembayaran Aman — pembayaran yang aman dan terjamin"
+    }
+    card "Kontak" { 
+        input "nama" placeholder "Nama Anda" bind: @state.nama validate "required"
+        input "email" placeholder "Email Anda" bind: @state.email validate "required|email"
+        input "pesan" placeholder "Pesan Anda" bind: @state.pesan validate "required"
+        button "Kirim Pesan" onClick kirim_pesan
+    }
+    footer " 2026 TokoMudah Online — dibuat dengan bahasa ADILang + framework ADI"
+}
+
+component App { 
+    on_mount: @log_change("app_mounted")
+}
+
+func belanja() { 
+    @log_change("belanja")
+}
+
+func kirim_pesan() { 
+    @log_change("kirim_pesan")
+}
