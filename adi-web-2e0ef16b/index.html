@@ -88,7 +88,10 @@ func buy() {
   } else if (typeof define === 'function' && define.amd) {
     define([], function () { return factory(global); });
   } else {
-    global.ADILang = factory(global);
+    var adi = factory(global);
+    global.ADILang = adi;
+    global.ADILangJITEngine = adi.ADILangJITEngine;
+    global.ADILangEngine = adi.ADILangEngine;
   }
 })(typeof window !== 'undefined' ? window : globalThis, function (global) {
   'use strict';
@@ -1200,7 +1203,8 @@ func buy() {
     }
 
     static bootFromInline(root) {
-      const scr = root.querySelector('script[type="text/adi"]');
+      const scr = (root && root.querySelector ? root.querySelector('script[type="text/adi"]') : null)
+        || (global.document && global.document.querySelector ? global.document.querySelector('script[type="text/adi"]') : null);
       if (!scr) throw new Error('Tidak ada <script type="text/adi"> di root');
       const engine = new ADILangJITEngine(root);
       return engine.loadCode(scr.textContent).then(() => engine);
@@ -1682,8 +1686,10 @@ func buy() {
   <script>
     window.addEventListener("DOMContentLoaded", function () {
       var root = document.getElementById("app");
-      if (window.ADILangJITEngine && root) {
-        window.ADILangJITEngine.bootFromInline(root).then(function (e) {
+      var adi = window.ADILang || {};
+      var JIT = adi.ADILangJITEngine || window.ADILangJITEngine;
+      if (JIT && root) {
+        JIT.bootFromInline(root).then(function (e) {
           window.__adiEngine = e;
         });
       }
