@@ -1,0 +1,64 @@
+@payload {
+    sender "adi"
+    target_agent "web"
+    intent "build"
+}
+
+@i18n {
+    locale "id" {
+        title "NAJWA Sepatu Lokal"
+        tagline "Sepatu Terkini, Harga Terjangkau, dan Pelayanan Prima"
+        sk1 "Produk Terbaru"
+        sk2 "Harga Bersaing"
+        sk3 "Testimoni Pelanggan"
+        topic_name "Fashion"
+        topic_desc "Sepatu lokal berkualitas"
+    }
+}
+
+routes {
+    route "/" layout "home" transition "fade"
+}
+
+ui_layout "home" {
+    navbar "NAJWA Sepatu Lokal"
+    container {
+        flex column {
+            text "NAJWA Sepatu Lokal"
+            text "Sepatu Terkini, Harga Terjangkau, dan Pelayanan Prima"
+            card "Produk Terbaru" {
+                text "Sepatu Casual Pria - Rp 250.000"
+                text "Sepatu Wanita - Rp 200.000"
+                text "Sepatu Anak - Rp 150.000"
+            }
+            card "Keunggulan Kami" {
+                text "Produk Terbaru - Sepatu terkini dari desainer lokal"
+                text "Harga Bersaing - Harga yang terjangkau untuk semua"
+                text "Testimoni Pelanggan - Dibuat dengan bahan berkualitas"
+            }
+            card "Testimoni Pelanggan" {
+                text "Saya sangat puas dengan sepatu NAJWA, nyaman dan stylish!"
+                text "Sepatu NAJWA adalah pilihan yang tepat untuk saya, harga yang terjangkau dan kualitas yang baik."
+            }
+            button "Beli Sekarang" onClick beli
+        }
+    }
+    card "Kontak" {
+        input "nama" placeholder "Nama Anda" bind: @state.nama validate "required"
+        input "email" placeholder "Email Anda" bind: @state.email validate "required|email"
+        button "Kirim Pesan" onClick kirim
+    }
+    footer " 2026 NAJWA Sepatu Lokal - dibuat dengan bahasa ADILang + framework ADI"
+}
+
+component App {
+    on_mount: @log_change("app_mounted")
+}
+
+func beli() {
+    @log_change("beli")
+}
+
+func kirim() {
+    @log_change("kirim")
+}
