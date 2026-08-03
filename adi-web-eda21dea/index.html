@@ -5,47 +5,274 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="generator" content="ADILang + ADILang Web SDK (ADI framework) v1.14.0">
   <title>home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     
-:root { color-scheme: dark; --adi-accent:#4f8cff; --adi-accent2:#7c5cff; --adi-bg:#0b1220; --adi-surface:#0f1a2e; --adi-border:rgba(120,160,255,.16); }
+:root {
+  color-scheme: dark;
+  --adi-bg: #070c18;
+  --adi-surface: #0d1526;
+  --adi-accent: #5b8cff;
+  --adi-accent2: #8b5cf6;
+  --adi-glow: #22d3ee;
+  --adi-border: rgba(129, 163, 255, .16);
+  --adi-text: #e4ebf8;
+  --adi-text-muted: #9fb0d0;
+}
 *, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--adi-bg); color: #e2e8f0; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--adi-bg);
+  color: var(--adi-text);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
 #app { min-height: 100vh; }
-.adi-root { min-height: 100vh; background: radial-gradient(1200px 600px at 80% -10%, rgba(79,140,255,.16), transparent 60%), radial-gradient(1000px 500px at 10% 110%, rgba(124,92,255,.14), transparent 55%), var(--adi-bg); }
-.adi-page { display: block; max-width: 1120px; margin: 0 auto; padding: 8px 20px 72px; }
-.adi-section { display: flex; flex-direction: column; gap: 20px; }
-.adi-page > .adi-section { margin: 36px 0; }
-.adi-flex { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.adi-root {
+  min-height: 100vh;
+  background:
+    radial-gradient(1100px 520px at 85% -8%, rgba(91,140,255,.18), transparent 62%),
+    radial-gradient(900px 480px at 8% 108%, rgba(139,92,246,.15), transparent 58%),
+    radial-gradient(700px 380px at 45% 40%, rgba(34,211,238,.05), transparent 60%),
+    var(--adi-bg);
+}
+.adi-render { animation: adiFadeIn .55s ease both; }
+@keyframes adiFadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.adi-page { display: block; max-width: 1180px; margin: 0 auto; padding: 10px 24px 84px; }
+.adi-section { display: flex; flex-direction: column; gap: 18px; }
+.adi-page > .adi-section { margin: 44px 0; }
+.adi-flex { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; }
 .adi-flex-row { flex-direction: row; }
 .adi-flex-col { flex-direction: column; align-items: stretch; }
-.adi-navbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 24px; background: rgba(11,18,32,.78); backdrop-filter: blur(14px); border: 1px solid var(--adi-border); border-radius: 16px; margin: 14px 0 8px; }
-.adi-navbar-title { font-size: 1.15rem; font-weight: 800; letter-spacing: .3px; background: linear-gradient(90deg, var(--adi-accent), var(--adi-accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.adi-layout > .adi-page > .adi-container:first-of-type { text-align: center; padding: 88px 28px 72px; border-radius: 28px; background: linear-gradient(160deg, rgba(79,140,255,.14), rgba(124,92,255,.10)), rgba(15,26,46,.5); border: 1px solid var(--adi-border); box-shadow: 0 30px 60px rgba(0,0,0,.35); margin-top: 28px; }
-.adi-layout > .adi-page > .adi-container:first-of-type .adi-text:first-child { font-size: clamp(2rem, 5.5vw, 3.6rem); font-weight: 800; line-height: 1.12; margin: 0 0 14px; background: linear-gradient(100deg, #eaf2ff, #a9c4ff 55%, #b9a8ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.adi-layout > .adi-page > .adi-container:first-of-type .adi-text:nth-child(2) { font-size: clamp(1.05rem, 2vw, 1.3rem); color: #b9c6e0; max-width: 640px; margin: 0 auto 28px; }
-.adi-container { display: flex; flex-direction: column; gap: 16px; }
-.adi-text { color: #dbe6f5; font-size: 1.02rem; margin: 0; }
-.adi-button { cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 26px; font-size: 1rem; font-weight: 700; border: none; border-radius: 12px; background: linear-gradient(120deg, var(--adi-accent), var(--adi-accent2)); color: #fff; box-shadow: 0 10px 24px rgba(79,140,255,.35); transition: transform .15s ease, box-shadow .15s ease, filter .15s ease; }
-.adi-button:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(79,140,255,.45); filter: brightness(1.08); }
+.adi-text { color: var(--adi-text); font-size: 1.02rem; margin: 0; }
+
+/* ── HERO ─────────────────────────────────────────────────────────────── */
+.adi-hero {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  padding: clamp(72px, 11vw, 128px) 28px clamp(56px, 9vw, 104px);
+  border-radius: 30px;
+  border: 1px solid rgba(129,163,255,.22);
+  background:
+    radial-gradient(680px 320px at 78% 8%, rgba(34,211,238,.22), transparent 60%),
+    radial-gradient(600px 320px at 18% 88%, rgba(139,92,246,.24), transparent 62%),
+    radial-gradient(760px 360px at 50% 0%, rgba(91,140,255,.18), transparent 66%),
+    linear-gradient(165deg, rgba(19,30,58,.9), rgba(10,17,34,.96));
+  box-shadow: 0 34px 80px rgba(0,0,0,.45);
+  isolation: isolate;
+}
+.adi-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(91,140,255,.18), transparent 42%),
+    radial-gradient(circle at 80% 70%, rgba(139,92,246,.16), transparent 45%);
+  filter: blur(6px);
+}
+.adi-hero .adi-text:first-child {
+  font-size: clamp(2.4rem, 6vw, 4.2rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -.02em;
+  margin: 0 0 18px;
+  background: linear-gradient(100deg, #ffffff 5%, #a9c4ff 45%, #c9b8ff 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.adi-hero .adi-text:nth-of-type(2) {
+  font-size: clamp(1.08rem, 2.1vw, 1.32rem);
+  color: var(--adi-text-muted);
+  max-width: 680px;
+  margin: 0 auto 34px;
+}
+.adi-hero .adi-button { margin-top: 6px; }
+
+/* ── GRID & KARTU ─────────────────────────────────────────────────────── */
+.adi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
+  gap: 26px;
+  margin: 6px 0;
+  counter-reset: adi-card;
+}
+.adi-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 30px 28px 32px;
+  border-radius: 22px;
+  border: 1px solid rgba(129,163,255,.14);
+  background: linear-gradient(168deg, rgba(22,34,62,.82), rgba(13,21,42,.94));
+  box-shadow: 0 18px 42px rgba(0,0,0,.32);
+  overflow: hidden;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.adi-card::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 12%; right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(91,140,255,.6), rgba(34,211,238,.6), transparent);
+}
+.adi-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(129,163,255,.4);
+  box-shadow: 0 30px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(91,140,255,.12);
+}
+.adi-grid .adi-card::before {
+  counter-increment: adi-card;
+  content: counter(adi-card, decimal-leading-zero);
+  position: absolute;
+  top: 18px; right: 20px;
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: rgba(139,180,255,.55);
+}
+.adi-card-title {
+  margin: 0 0 2px;
+  font-size: 1.32rem;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  color: #f2f6ff;
+}
+.adi-card .adi-text { color: #c4d2ec; font-size: .98rem; }
+
+/* ── NAVBAR ───────────────────────────────────────────────────────────── */
+.adi-navbar {
+  position: sticky;
+  top: 14px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 15px 24px;
+  margin: 14px 0 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(129,163,255,.18);
+  background: rgba(9,14,28,.72);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 12px 34px rgba(0,0,0,.28);
+}
+.adi-navbar-title {
+  font-size: 1.18rem;
+  font-weight: 800;
+  letter-spacing: .2px;
+  background: linear-gradient(90deg, #7aa7ff, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ── TOMBOL ───────────────────────────────────────────────────────────── */
+.adi-button {
+  position: relative;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 15px 32px;
+  font-family: inherit;
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #fff;
+  border: none;
+  border-radius: 13px;
+  background: linear-gradient(120deg, var(--adi-accent), var(--adi-accent2));
+  box-shadow: 0 14px 32px rgba(91,140,255,.35);
+  overflow: hidden;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+.adi-button::before {
+  content: "";
+  position: absolute;
+  top: 0; left: -70%;
+  width: 45%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent);
+  transform: skewX(-22deg);
+  transition: left .55s ease;
+}
+.adi-button:hover { transform: translateY(-2px); box-shadow: 0 20px 42px rgba(91,140,255,.5); filter: brightness(1.08); }
+.adi-button:hover::before { left: 120%; }
 .adi-button:active { transform: translateY(0); }
-.adi-input { background: rgba(10,17,30,.9); color: #eaf2ff; border: 1px solid var(--adi-border); border-radius: 10px; padding: 12px 14px; font-size: 1rem; width: 100%; max-width: 420px; outline: none; transition: border-color .15s ease, box-shadow .15s ease; }
-.adi-input:focus { border-color: var(--adi-accent); box-shadow: 0 0 0 3px rgba(79,140,255,.25); }
-.adi-input.adi-invalid, .adi-input[data-invalid="true"] { border-color: #ff6b7a; box-shadow: 0 0 0 3px rgba(255,107,122,.22); }
-.adi-image { max-width: 100%; height: auto; border-radius: 14px; }
-.adi-card { display: flex; flex-direction: column; gap: 12px; background: linear-gradient(165deg, rgba(20,34,58,.85), rgba(14,24,44,.9)); border: 1px solid var(--adi-border); border-radius: 20px; padding: 28px; box-shadow: 0 14px 34px rgba(0,0,0,.28); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
-.adi-card:hover { transform: translateY(-4px); box-shadow: 0 22px 44px rgba(0,0,0,.4); border-color: rgba(120,160,255,.32); }
-.adi-card-title { margin: 0 0 4px; font-size: 1.35rem; font-weight: 800; color: #f0f5ff; }
-.adi-card .adi-text { color: #c3d0e8; }
-.adi-flex .adi-card { flex: 1 1 260px; }
-.adi-modal { display: flex; flex-direction: column; gap: 12px; background: linear-gradient(165deg, rgba(22,38,66,.95), rgba(15,26,46,.97)); border: 1px solid rgba(120,160,255,.28); border-radius: 20px; padding: 28px; box-shadow: 0 24px 60px rgba(0,0,0,.5); }
-.adi-modal-title { margin: 0 0 4px; font-size: 1.4rem; font-weight: 800; color: #f0f5ff; }
-.adi-footer { margin-top: 56px; padding: 26px 20px; text-align: center; color: #8b9bb5; font-size: .92rem; border-top: 1px solid var(--adi-border); }
-.adi-seo { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; clip-path: inset(50%) !important; white-space: nowrap !important; }
-@media (max-width: 640px) {
+
+/* ── INPUT & FORM ─────────────────────────────────────────────────────── */
+.adi-input {
+  background: rgba(8,13,26,.85);
+  color: var(--adi-text);
+  font-family: inherit;
+  border: 1.5px solid rgba(129,163,255,.22);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 440px;
+  outline: none;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+.adi-input:focus { border-color: var(--adi-accent); box-shadow: 0 0 0 4px rgba(91,140,255,.18); }
+.adi-input.adi-invalid, .adi-input[data-invalid="true"] { border-color: #ff6b7a; box-shadow: 0 0 0 4px rgba(255,107,122,.18); }
+.adi-form-section {
+  padding: 34px;
+  border-radius: 24px;
+  border: 1px solid rgba(129,163,255,.14);
+  background: linear-gradient(168deg, rgba(18,28,54,.7), rgba(11,18,36,.82));
+}
+
+/* ── GAMBAR / MODAL ───────────────────────────────────────────────────── */
+.adi-image { max-width: 100%; height: auto; border-radius: 16px; }
+.adi-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: linear-gradient(165deg, rgba(24,40,72,.95), rgba(14,24,46,.98));
+  border: 1px solid rgba(129,163,255,.28);
+  border-radius: 22px;
+  padding: 30px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.55);
+}
+.adi-modal-title { margin: 0 0 4px; font-size: 1.4rem; font-weight: 800; color: #f2f6ff; }
+
+/* ── FOOTER / SEO ─────────────────────────────────────────────────────── */
+.adi-footer {
+  margin-top: 72px;
+  padding: 30px 20px;
+  text-align: center;
+  color: #8496b8;
+  font-size: .92rem;
+  border-top: 1px solid rgba(129,163,255,.12);
+}
+.adi-seo {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 768px) {
+  .adi-page { padding: 6px 16px 60px; }
+  .adi-hero { padding: 60px 20px 48px; border-radius: 22px; }
+  .adi-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
   .adi-navbar { flex-direction: column; align-items: flex-start; }
-  .adi-layout > .adi-page > .adi-container:first-of-type { padding: 60px 20px 48px; }
-  .adi-flex { flex-direction: column; align-items: stretch; }
-  .adi-flex-row { flex-direction: column; }
+  .adi-button { width: 100%; }
 }
 
   </style>
@@ -651,6 +878,39 @@ func buy() {
     return resolveTemplate(s, state);
   }
 
+  // Render satu node "leaf" (text/button/input/image) menjadi elemen DOM.
+  function renderLeafNode(c, state) {
+    if (c.kind === 'text') {
+      const t = el('p', 'adi-text', resolveTemplate(c.content, state));
+      t.setAttribute('role', 'text');
+      if (c.ariaLabel) t.setAttribute('aria-label', resolveTemplate(c.ariaLabel, state));
+      return t;
+    } else if (c.kind === 'button') {
+      const b = el('button', 'adi-button', resolveTemplate(c.label, state));
+      b.setAttribute('aria-label', ariaLabelOf(c, state));
+      if (c.onClick) b.setAttribute('data-action', c.onClick);
+      return b;
+    } else if (c.kind === 'input') {
+      const inp = el('input', 'adi-input');
+      inp.name = c.name || '';
+      inp.placeholder = resolveTemplate(c.placeholder || '', state);
+      inp.setAttribute('aria-label', c.name || 'input');
+      if (c.bind) {
+        inp.setAttribute('data-bind', c.bind);
+        const val = state.get(c.bind);
+        if (val != null) inp.value = String(val);
+      }
+      if (c.validate) inp.setAttribute('data-validate', c.validate);
+      return inp;
+    } else if (c.kind === 'image') {
+      const img = el('img', 'adi-image');
+      img.alt = resolveTemplate(c.alt || c.label || 'gambar', state);
+      if (c.src) img.src = resolveTemplate(c.src, state);
+      return img;
+    }
+    return null;
+  }
+
   function renderLayoutIR(root, state, depth) {
     const d = depth || 0;
     let cls = d === 0 ? 'adi-container adi-page' : 'adi-container adi-section';
@@ -658,38 +918,23 @@ func buy() {
     else if (root.flex === 'column') cls += ' adi-flex adi-flex-col';
     const wrap = el('div', cls);
     wrap.setAttribute('role', 'group');
+    const appendLeaf = (c) => {
+      const node = renderLeafNode(c, state);
+      if (node) wrap.appendChild(node);
+    };
+    const appendCardChild = (parent, c) => {
+      const node = renderLeafNode(c, state);
+      if (node) { parent.appendChild(node); return; }
+      const sub = renderLayoutIR(c, state, d + 1);
+      if (sub) parent.appendChild(sub);
+    };
     (root.children || []).forEach((c) => {
       if (c.kind === 'container') {
         const sub = renderLayoutIR(c, state, d + 1);
         if (c.ariaLabel) sub.setAttribute('aria-label', resolveTemplate(c.ariaLabel, state));
         wrap.appendChild(sub);
-      } else if (c.kind === 'text') {
-        const t = el('p', 'adi-text', resolveTemplate(c.content, state));
-        t.setAttribute('role', 'text');
-        if (c.ariaLabel) t.setAttribute('aria-label', resolveTemplate(c.ariaLabel, state));
-        wrap.appendChild(t);
-      } else if (c.kind === 'button') {
-        const b = el('button', 'adi-button', resolveTemplate(c.label, state));
-        b.setAttribute('aria-label', ariaLabelOf(c, state));
-        if (c.onClick) b.setAttribute('data-action', c.onClick);
-        wrap.appendChild(b);
-      } else if (c.kind === 'input') {
-        const inp = el('input', 'adi-input');
-        inp.name = c.name || '';
-        inp.placeholder = resolveTemplate(c.placeholder || '', state);
-        inp.setAttribute('aria-label', c.name || 'input');
-        if (c.bind) {
-          inp.setAttribute('data-bind', c.bind);
-          const val = state.get(c.bind);
-          if (val != null) inp.value = String(val);
-        }
-        if (c.validate) inp.setAttribute('data-validate', c.validate);
-        wrap.appendChild(inp);
-      } else if (c.kind === 'image') {
-        const img = el('img', 'adi-image');
-        img.alt = resolveTemplate(c.alt || c.label || 'gambar', state);
-        if (c.src) img.src = resolveTemplate(c.src, state);
-        wrap.appendChild(img);
+      } else if (c.kind === 'text' || c.kind === 'button' || c.kind === 'input' || c.kind === 'image') {
+        appendLeaf(c);
       } else if (c.kind === 'card') {
         const card = el('div', 'adi-card');
         card.setAttribute('role', 'group');
@@ -697,7 +942,7 @@ func buy() {
           const h = el('h3', 'adi-card-title', resolveTemplate(c.title, state));
           card.appendChild(h);
         }
-        (c.children || []).forEach((cc) => card.appendChild(renderLayoutIR({ kind: 'container', children: [cc] }, state, d + 1)));
+        (c.children || []).forEach((cc) => appendCardChild(card, cc));
         wrap.appendChild(card);
       } else if (c.kind === 'modal') {
         const mod = el('div', 'adi-modal');
@@ -706,7 +951,7 @@ func buy() {
           const h = el('h3', 'adi-modal-title', resolveTemplate(c.title, state));
           mod.appendChild(h);
         }
-        (c.children || []).forEach((cc) => mod.appendChild(renderLayoutIR({ kind: 'container', children: [cc] }, state, d + 1)));
+        (c.children || []).forEach((cc) => appendCardChild(mod, cc));
         wrap.appendChild(mod);
       } else if (c.kind === 'navbar') {
         const nav = el('nav', 'adi-navbar');
@@ -1165,35 +1410,40 @@ func buy() {
       this._shadow = this.attachShadow ? this.attachShadow({ mode: 'open' }) : this;
       const style = global.document.createElement('style');
       style.textContent =
+        '@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");' +
         ':host{display:block;position:relative;}' +
-        '.adi-root{min-height:40px;font-family:"Segoe UI",system-ui,sans-serif;color:#e2e8f0;background:radial-gradient(1200px 600px at 80% -10%,rgba(79,140,255,.16),transparent 60%),radial-gradient(1000px 500px at 10% 110%,rgba(124,92,255,.14),transparent 55%),#0b1220;}' +
-        '.adi-page{display:block;max-width:1120px;margin:0 auto;padding:8px 20px 60px;}' +
+        '.adi-root{min-height:40px;font-family:"Plus Jakarta Sans","Segoe UI",system-ui,sans-serif;color:#e4ebf8;background:radial-gradient(1100px 520px at 85% -8%,rgba(91,140,255,.18),transparent 62%),radial-gradient(900px 480px at 8% 108%,rgba(139,92,246,.15),transparent 58%),#070c18;}' +
+        '.adi-page{display:block;max-width:1180px;margin:0 auto;padding:10px 24px 70px;}' +
         '.adi-section{display:flex;flex-direction:column;gap:18px;}' +
-        '.adi-page>.adi-section{margin:34px 0;}' +
-        '.adi-flex{display:flex;flex-wrap:wrap;align-items:center;gap:16px;}' +
+        '.adi-page>.adi-section{margin:40px 0;}' +
+        '.adi-flex{display:flex;flex-wrap:wrap;align-items:center;gap:18px;}' +
         '.adi-flex-row{flex-direction:row;}' +
         '.adi-flex-col{flex-direction:column;align-items:stretch;}' +
-        '.adi-navbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 20px;background:rgba(11,18,32,.8);backdrop-filter:blur(14px);border:1px solid rgba(120,160,255,.16);border-radius:14px;margin:12px 0 6px;}' +
-        '.adi-navbar-title{font-size:1.1rem;font-weight:800;background:linear-gradient(90deg,#4f8cff,#7c5cff);-webkit-background-clip:text;background-clip:text;color:transparent;}' +
-        '.adi-layout>.adi-page>.adi-container:first-of-type{text-align:center;padding:72px 24px 56px;border-radius:24px;background:linear-gradient(160deg,rgba(79,140,255,.14),rgba(124,92,255,.1)),rgba(15,26,46,.5);border:1px solid rgba(120,160,255,.16);box-shadow:0 26px 50px rgba(0,0,0,.35);margin-top:24px;}' +
-        '.adi-layout>.adi-page>.adi-container:first-of-type .adi-text:first-child{font-size:clamp(1.8rem,5vw,3rem);font-weight:800;line-height:1.12;margin:0 0 12px;background:linear-gradient(100deg,#eaf2ff,#a9c4ff 55%,#b9a8ff);-webkit-background-clip:text;background-clip:text;color:transparent;}' +
-        '.adi-layout>.adi-page>.adi-container:first-of-type .adi-text:nth-child(2){font-size:1.05rem;color:#b9c6e0;max-width:620px;margin:0 auto 24px;}' +
-        '.adi-container{display:flex;flex-direction:column;gap:14px;}' +
-        '.adi-text{color:#dbe6f5;font-size:1rem;margin:0;}' +
-        '.adi-button{cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:11px 24px;font-size:1rem;font-weight:700;border:none;border-radius:12px;background:linear-gradient(120deg,#4f8cff,#7c5cff);color:#fff;box-shadow:0 10px 22px rgba(79,140,255,.35);transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;}' +
-        '.adi-button:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(79,140,255,.45);filter:brightness(1.08);}' +
-        '.adi-input{background:rgba(10,17,30,.9);color:#eaf2ff;border:1px solid rgba(120,160,255,.16);border-radius:10px;padding:11px 14px;font-size:1rem;width:100%;max-width:420px;outline:none;}' +
-        '.adi-input:focus{border-color:#4f8cff;box-shadow:0 0 0 3px rgba(79,140,255,.25);}' +
-        '.adi-image{max-width:100%;height:auto;border-radius:14px;}' +
-        '.adi-card{display:flex;flex-direction:column;gap:12px;background:linear-gradient(165deg,rgba(20,34,58,.85),rgba(14,24,44,.9));border:1px solid rgba(120,160,255,.16);border-radius:20px;padding:26px;box-shadow:0 14px 34px rgba(0,0,0,.28);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;}' +
-        '.adi-card:hover{transform:translateY(-4px);box-shadow:0 22px 44px rgba(0,0,0,.4);border-color:rgba(120,160,255,.32);}' +
-        '.adi-card-title{margin:0 0 4px;font-size:1.3rem;font-weight:800;color:#f0f5ff;}' +
-        '.adi-card .adi-text{color:#c3d0e8;}' +
-        '.adi-flex .adi-card{flex:1 1 260px;}' +
-        '.adi-modal{display:flex;flex-direction:column;gap:12px;background:linear-gradient(165deg,rgba(22,38,66,.95),rgba(15,26,46,.97));border:1px solid rgba(120,160,255,.28);border-radius:20px;padding:26px;box-shadow:0 24px 60px rgba(0,0,0,.5);}' +
-        '.adi-modal-title{margin:0 0 4px;font-size:1.3rem;font-weight:800;color:#f0f5ff;}' +
-        '.adi-footer{margin-top:48px;padding:22px 20px;text-align:center;color:#8b9bb5;font-size:.9rem;border-top:1px solid rgba(120,160,255,.16);}' +
-        '@media(max-width:640px){.adi-navbar{flex-direction:column;align-items:flex-start;}.adi-layout>.adi-page>.adi-container:first-of-type{padding:52px 18px 40px;}.adi-flex{flex-direction:column;align-items:stretch;}}';
+        '.adi-hero{position:relative;overflow:hidden;text-align:center;padding:clamp(64px,10vw,110px) 24px clamp(52px,8vw,90px);border-radius:26px;border:1px solid rgba(129,163,255,.22);background:radial-gradient(680px 320px at 78% 8%,rgba(34,211,238,.2),transparent 60%),radial-gradient(600px 320px at 18% 88%,rgba(139,92,246,.22),transparent 62%),linear-gradient(165deg,rgba(19,30,58,.9),rgba(10,17,34,.96));box-shadow:0 30px 70px rgba(0,0,0,.45);}' +
+        '.adi-hero .adi-text:first-child{font-size:clamp(2rem,6vw,3.6rem);font-weight:800;line-height:1.1;letter-spacing:-.02em;margin:0 0 16px;background:linear-gradient(100deg,#fff 5%,#a9c4ff 45%,#c9b8ff 80%);-webkit-background-clip:text;background-clip:text;color:transparent;}' +
+        '.adi-hero .adi-text:nth-of-type(2){font-size:1.1rem;color:#9fb0d0;max-width:640px;margin:0 auto 30px;}' +
+        '.adi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;margin:6px 0;}' +
+        '.adi-card{position:relative;display:flex;flex-direction:column;gap:12px;padding:28px 26px 30px;border-radius:20px;border:1px solid rgba(129,163,255,.14);background:linear-gradient(168deg,rgba(22,34,62,.82),rgba(13,21,42,.94));box-shadow:0 18px 42px rgba(0,0,0,.32);overflow:hidden;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;}' +
+        '.adi-card::after{content:"";position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,rgba(91,140,255,.6),rgba(34,211,238,.6),transparent);}' +
+        '.adi-card:hover{transform:translateY(-5px);border-color:rgba(129,163,255,.4);box-shadow:0 28px 56px rgba(0,0,0,.5);}' +
+        '.adi-card-title{margin:0 0 2px;font-size:1.28rem;font-weight:800;letter-spacing:-.01em;color:#f2f6ff;}' +
+        '.adi-card .adi-text{color:#c4d2ec;font-size:.98rem;}' +
+        '.adi-navbar{position:sticky;top:12px;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 22px;margin:12px 0 8px;border-radius:16px;border:1px solid rgba(129,163,255,.18);background:rgba(9,14,28,.74);backdrop-filter:blur(18px);box-shadow:0 12px 32px rgba(0,0,0,.28);}' +
+        '.adi-navbar-title{font-size:1.15rem;font-weight:800;letter-spacing:.2px;background:linear-gradient(90deg,#7aa7ff,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent;}' +
+        '.adi-text{color:#e4ebf8;font-size:1.02rem;margin:0;}' +
+        '.adi-button{position:relative;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 30px;font-family:inherit;font-size:1rem;font-weight:700;color:#fff;border:none;border-radius:13px;background:linear-gradient(120deg,#5b8cff,#8b5cf6);box-shadow:0 14px 32px rgba(91,140,255,.35);overflow:hidden;transition:transform .18s ease,box-shadow .18s ease,filter .18s ease;}' +
+        '.adi-button::before{content:"";position:absolute;top:0;left:-70%;width:45%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-22deg);transition:left .55s ease;}' +
+        '.adi-button:hover{transform:translateY(-2px);box-shadow:0 20px 40px rgba(91,140,255,.5);filter:brightness(1.08);}' +
+        '.adi-button:hover::before{left:120%;}' +
+        '.adi-input{background:rgba(8,13,26,.85);color:#e4ebf8;font-family:inherit;border:1.5px solid rgba(129,163,255,.22);border-radius:12px;padding:13px 16px;font-size:1rem;width:100%;max-width:440px;outline:none;}' +
+        '.adi-input:focus{border-color:#5b8cff;box-shadow:0 0 0 4px rgba(91,140,255,.18);}' +
+        '.adi-form-section{padding:32px;border-radius:22px;border:1px solid rgba(129,163,255,.14);background:linear-gradient(168deg,rgba(18,28,54,.7),rgba(11,18,36,.82));}' +
+        '.adi-image{max-width:100%;height:auto;border-radius:16px;}' +
+        '.adi-modal{display:flex;flex-direction:column;gap:14px;background:linear-gradient(165deg,rgba(24,40,72,.95),rgba(14,24,46,.98));border:1px solid rgba(129,163,255,.28);border-radius:22px;padding:30px;box-shadow:0 30px 80px rgba(0,0,0,.55);}' +
+        '.adi-modal-title{margin:0 0 4px;font-size:1.35rem;font-weight:800;color:#f2f6ff;}' +
+        '.adi-footer{margin-top:64px;padding:26px 20px;text-align:center;color:#8496b8;font-size:.9rem;border-top:1px solid rgba(129,163,255,.12);}' +
+        '@media(max-width:768px){.adi-grid{grid-template-columns:1fr;}.adi-page{padding:6px 16px 56px;}.adi-hero{padding:56px 20px 44px;border-radius:20px;}}' +
+        '@media(max-width:480px){.adi-navbar{flex-direction:column;align-items:flex-start;}.adi-button{width:100%;}}';
       this._shadow.appendChild(style);
       const host = global.document.createElement('div');
       host.className = 'adi-root';
@@ -1422,7 +1672,50 @@ func buy() {
         });
       }
       this.container.appendChild(host);
+      this._enrichLayout(host);
       this._wireDom(host);
+    }
+
+    // Auto-layout engine: naikkan struktur DOM hasil renderLayoutIR agar
+    // tampilan profesional TERLEPAS dari struktur yang ditulis LLM:
+    // 1. Section pertama dalam page → hero (blok besar, teks besar, CTA).
+    // 2. Card-card yang bersaudara langsung → dibungkus grid responsif.
+    // 3. Flex-row yang berisi >=2 card → diberi class grid.
+    // 4. Section yang berisi form input → diberi class form-section.
+    _enrichLayout(host) {
+      if (!host || !host.querySelectorAll) return;
+      host.querySelectorAll('.adi-page').forEach((page) => {
+        // 1. Hero — elemen berisi pertama (selain navbar/footer) yang berupa section.
+        const direct = Array.from(page.children).filter((n) =>
+          !n.classList.contains('adi-navbar') && !n.classList.contains('adi-footer')
+        );
+        const first = direct[0];
+        if (first && first.classList.contains('adi-section')) {
+          first.classList.add('adi-hero');
+        }
+        // 2. Card bersaudara langsung → grid.
+        const siblings = direct.filter((n) => n.classList.contains('adi-card'));
+        if (siblings.length >= 2) {
+          const grid = el('div', 'adi-grid');
+          grid.setAttribute('role', 'list');
+          page.insertBefore(grid, siblings[0]);
+          siblings.forEach((card) => grid.appendChild(card));
+        }
+        // 3. Flex-row berisi card → grid.
+        page.querySelectorAll('.adi-flex.adi-flex-row').forEach((fr) => {
+          if (fr.querySelectorAll(':scope > .adi-card').length >= 2) {
+            fr.classList.add('adi-grid');
+          }
+        });
+        // 4. Section berisi input → form panel.
+        page.querySelectorAll('.adi-section').forEach((s) => {
+          if (s.querySelector(':scope > .adi-input') || s.querySelector('.adi-input')) {
+            s.classList.add('adi-form-section');
+          }
+        });
+        // 5. Pasang peran aksesibilitas pada grid item.
+        page.querySelectorAll('.adi-grid .adi-card').forEach((c) => c.setAttribute('role', 'listitem'));
+      });
     }
 
     _wireDom(host) {
