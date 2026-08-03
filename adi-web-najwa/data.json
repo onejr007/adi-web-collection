@@ -1,0 +1,21 @@
+{
+  "project": "adi-web-najwa",
+  "version": "1.0.0",
+  "created_by": "ADI (Agent Distributed Intelligence)",
+  "engine": "ADILang + ADILang Web SDK (ADI framework)",
+  "adilang": true,
+  "slug": "adi-web-najwa",
+  "created_at": "2026-08-03 07:01 UTC",
+  "last_updated": "2026-08-03 07:01 UTC",
+  "description": "Online shop sepatu lokal NAJWA",
+  "data": {
+    "items": [],
+    "categories": [],
+    "settings": {
+      "site_name": "adi-web-najwa",
+      "theme": "default",
+      "language": "id"
+    }
+  },
+  "notes": "Database JSON untuk website statis ADI. Data bisa dimodifikasi langsung."
+}
