@@ -1,0 +1,80 @@
+@payload { 
+    sender "adi" 
+    target_agent "web" 
+    intent "build" 
+}
+
+@i18n { 
+    locale "id" { 
+        title "NAJWA - Sepatu Lokal Berkualitas" 
+        tagline "Trendi, Nyaman, dan Terjangkau" 
+        feat1 "Bahan Berkualitas" 
+        feat2 "Desain Elegan" 
+        feat3 "Harga Kompetitif" 
+        produk "Produk" 
+        harga "Harga" 
+        testimoni "Testimoni" 
+        beli "Beli Sekarang" 
+    } 
+    locale "en" { 
+        title "NAJWA - Quality Local Shoes" 
+        tagline "Trendy, Comfortable, and Affordable" 
+    } 
+}
+
+routes { 
+    route "/" layout "home" transition "fade" 
+}
+
+ui_layout "home" { 
+    navbar "NAJWA" 
+    container { 
+        flex column { 
+            text "NAJWA - Sepatu Lokal Berkualitas" 
+            text "Trendi, Nyaman, dan Terjangkau" 
+            flex row { 
+                card "Sepatu Sneaker" { 
+                    text "Rp 250.000" 
+                    button "Beli Sekarang" onClick beli_sneaker 
+                } 
+                card "Sepatu Boots" { 
+                    text "Rp 350.000" 
+                    button "Beli Sekarang" onClick beli_boots 
+                } 
+                card "Sepatu Sandal" { 
+                    text "Rp 150.000" 
+                    button "Beli Sekarang" onClick beli_sandal 
+                } 
+            } 
+            text "Testimoni" 
+            flex column { 
+                card "Testimoni 1" { 
+                    text "\"Saya sangat puas dengan sepatu NAJWA, nyaman dan trendi!\"" 
+                } 
+                card "Testimoni 2" { 
+                    text "\"NAJWA adalah pilihan terbaik untuk sepatu lokal, harga terjangkau dan kualitas bagus!\"" 
+                } 
+                card "Testimoni 3" { 
+                    text "\"Saya sudah beberapa kali membeli sepatu NAJWA, dan saya sangat merekomendasikan!\"" 
+                } 
+            } 
+        } 
+    } 
+    footer " 2026 NAJWA - dibuat dengan bahasa ADILang + framework ADI" 
+}
+
+component App { 
+    on_mount: @log_change("app_mounted") 
+}
+
+func beli_sneaker() { 
+    @log_change("beli_sneaker") 
+}
+
+func beli_boots() { 
+    @log_change("beli_boots") 
+}
+
+func beli_sandal() { 
+    @log_change("beli_sandal") 
+}
