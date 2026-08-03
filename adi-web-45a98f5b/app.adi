@@ -1,0 +1,63 @@
+@payload { 
+  sender "adi" 
+  target_agent "web" 
+  intent "build" 
+}
+
+@i18n { 
+  locale "id" { 
+    title "SoleMates" 
+    tagline "Temukan Sepatu Impian Anda" 
+    sk1 "Pilihan Brand Terlengkap" 
+    sk2 "Harga Kompetitif dan Terjangkau" 
+    sk3 "Pengiriman Cepat dan Aman" 
+    topic_name "Fashion" 
+    topic_desc "Sepatu Terbaru dan Tren Terkini" 
+    kontak "Hubungi Kami" 
+    pesan "Pesan Sekarang" 
+    kirim "Kirim Pesan" 
+  } 
+  locale "en" { 
+    title "SoleMates" 
+    tagline "Find Your Dream Shoes" 
+  } 
+}
+
+routes { 
+  route "/" layout "home" transition "fade" 
+}
+
+ui_layout "home" { 
+  navbar "SoleMates" 
+  container { 
+    flex column { 
+      text "SoleMates" 
+      text "Temukan Sepatu Impian Anda" 
+      button "Pesan Sekarang" onClick beli 
+    } 
+  } 
+  card "Keunggulan Kami" { 
+    text "Pilihan Brand Terlengkap — ratusan brand terkenal" 
+    text "Harga Kompetitif dan Terjangkau — harga yang sesuai dengan kualitas" 
+    text "Pengiriman Cepat dan Aman — pengiriman yang cepat dan aman" 
+  } 
+  card "Kontak" { 
+    input "nama" placeholder "Nama Anda" bind: @state.nama validate "required" 
+    input "email" placeholder "Email Anda" bind: @state.email validate "required|email" 
+    input "pesan" placeholder "Pesan Anda" bind: @state.pesan validate "required" 
+    button "Kirim Pesan" onClick kirim_pesan 
+  } 
+  footer " 2026 SoleMates — dibuat dengan bahasa ADILang + framework ADI" 
+}
+
+component App { 
+  on_mount: @log_change("app_mounted") 
+}
+
+func beli() { 
+  @log_change("beli") 
+}
+
+func kirim_pesan() { 
+  @log_change("kirim_pesan") 
+}
