@@ -1,0 +1,77 @@
+@payload { 
+    sender "adi" 
+    target_agent "web" 
+    intent "build" 
+}
+
+@i18n { 
+    locale "id" { 
+        title "Kopi Nusantara"
+        tagline "Rasakan Kopi Asli Indonesia"
+        sk1 "Menu Variatif"
+        sk2 "Harga Terjangkau"
+        sk3 "Lokasi Strategis"
+        topic_name "Kuliner"
+        topic_desc "Kopi Enak dan Hangat"
+        menu "Menu Minuman"
+        harga "Harga"
+        alamat "Alamat"
+        jam_buka "Jam Buka"
+        pesan "Pesan Sekarang"
+        kirim "Kirim Pesan"
+        nama "Nama Anda"
+        email "Email Anda"
+        kontak "Kontak Kami"
+    } 
+    locale "en" { 
+        title "Kopi Nusantara"
+        tagline "Experience Authentic Indonesian Coffee"
+    } 
+}
+
+routes { 
+    route "/" layout "home" transition "fade"
+}
+
+ui_layout "home" { 
+    navbar "Kopi Nusantara"
+    container { 
+        flex column { 
+            text "Kopi Nusantara"
+            text "Rasakan Kopi Asli Indonesia"
+            button "Pesan Sekarang" onClick cta
+        }
+    }
+    card "Keunggulan Kami" { 
+        text "Menu Variatif — kami menyajikan berbagai pilihan kopi"
+        text "Harga Terjangkau — nikmati kopi tanpa menguras kantong"
+        text "Lokasi Strategis — kunjungi kami di alamat yang mudah dijangkau"
+    }
+    card "Menu" { 
+        text "Kopi Susu: Rp 10.000"
+        text "Kopi Hitam: Rp 8.000"
+        text "Kopi Cappuccino: Rp 15.000"
+    }
+    card "Informasi" { 
+        text "Alamat: Jl. Raya No. 123, Jakarta"
+        text "Jam Buka: 08.00 - 20.00 WIB"
+    }
+    card "Kontak" { 
+        input "nama" placeholder "Nama Anda" bind: @state.nama validate "required"
+        input "email" placeholder "Email Anda" bind: @state.email validate "required|email"
+        button "Kirim Pesan" onClick kirim
+    }
+    footer " 2026 Kopi Nusantara — dibuat dengan bahasa ADILang + framework ADI"
+}
+
+component App { 
+    on_mount: @log_change("app_mounted")
+}
+
+func cta() { 
+    @log_change("cta")
+}
+
+func kirim() { 
+    @log_change("kirim")
+}
