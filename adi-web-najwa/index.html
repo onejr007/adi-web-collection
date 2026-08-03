@@ -119,7 +119,10 @@ func beli_sandal() {
   } else if (typeof define === 'function' && define.amd) {
     define([], function () { return factory(global); });
   } else {
-    global.ADILang = factory(global);
+    var adi = factory(global);
+    global.ADILang = adi;
+    global.ADILangJITEngine = adi.ADILangJITEngine;
+    global.ADILangEngine = adi.ADILangEngine;
   }
 })(typeof window !== 'undefined' ? window : globalThis, function (global) {
   'use strict';
@@ -1714,8 +1717,10 @@ func beli_sandal() {
   <script>
     window.addEventListener("DOMContentLoaded", function () {
       var root = document.getElementById("app");
-      if (window.ADILangJITEngine && root) {
-        window.ADILangJITEngine.bootFromInline(root).then(function (e) {
+      var adi = window.ADILang || {};
+      var JIT = adi.ADILangJITEngine || window.ADILangJITEngine;
+      if (JIT && root) {
+        JIT.bootFromInline(root).then(function (e) {
           window.__adiEngine = e;
         });
       }
