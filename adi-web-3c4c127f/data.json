@@ -1,0 +1,21 @@
+{
+  "project": "adi-web-3c4c127f",
+  "version": "1.0.0",
+  "created_by": "ADI (Agent Distributed Intelligence)",
+  "engine": "ADILang + ADILang Web SDK (ADI framework)",
+  "adilang": true,
+  "slug": "adi-web-3c4c127f",
+  "created_at": "2026-08-03 07:15 UTC",
+  "last_updated": "2026-08-03 07:15 UTC",
+  "description": "buatkan website kafe kopi nusantara dengan menu minuman, harga, alamat, jam buka",
+  "data": {
+    "items": [],
+    "categories": [],
+    "settings": {
+      "site_name": "adi-web-3c4c127f",
+      "theme": "default",
+      "language": "id"
+    }
+  },
+  "notes": "Database JSON untuk website statis ADI. Data bisa dimodifikasi langsung."
+}
