@@ -1,0 +1,21 @@
+{
+  "project": "adi-web-ea712b25",
+  "version": "1.0.0",
+  "created_by": "ADI (Agent Distributed Intelligence)",
+  "engine": "HTML/CSS/JS (LLM-generated)",
+  "adilang": false,
+  "slug": "adi-web-ea712b25",
+  "created_at": "2026-08-06 10:33 UTC",
+  "last_updated": "2026-08-06 10:33 UTC",
+  "description": "Saya ingin anda buatkan website seperti profesional dashboard admin dong",
+  "data": {
+    "items": [],
+    "categories": [],
+    "settings": {
+      "site_name": "adi-web-ea712b25",
+      "theme": "default",
+      "language": "id"
+    }
+  },
+  "notes": "Database JSON untuk website statis ADI. Data bisa dimodifikasi langsung."
+}
